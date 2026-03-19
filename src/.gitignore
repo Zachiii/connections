@@ -1,0 +1,26 @@
+# --- File di IntelliJ (Quelli che avevi già, più completi) ---
+.idea/
+*.iml
+out/
+gen/
+/shelf/
+/workspace.xml
+/queries/
+/dataSources/
+/dataSources.local.xml
+/httpRequests/
+
+# --- File di sistema e compilazione ---
+*.class
+.DS_Store
+Thumbs.db
+
+# --- Regola per i JAR ---
+# Il professore vuole i JAR nella consegna, ma su GitHub
+# solitamente si preferisce non metterli.
+# Se però vuoi che siano presenti anche online,
+# lascia la riga qui sotto commentata (con il #).
+# *.jar
+
+# --- File di log o temporanei ---
+*.log
