@@ -24,3 +24,6 @@ Thumbs.db
 
 # --- File di log o temporanei ---
 *.log
+
+# --- PDF del progetto
+*.pdf
