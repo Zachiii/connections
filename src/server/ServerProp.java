@@ -32,7 +32,7 @@ public class ServerProp {
     public int getPort() {
         return Integer.parseInt(port);
     }
-    public String getMatchTime() {
-        return matchTime;
+    public int getMatchTime() {
+        return Integer.parseInt(matchTime);
     }
 }
