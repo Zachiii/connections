@@ -27,3 +27,5 @@ Thumbs.db
 
 # --- PDF del progetto
 *.pdf
+/Connections_Data.json:Zone.Identifier
+/gson-2.14.0.jar:Zone.Identifier
