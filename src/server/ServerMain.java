@@ -11,9 +11,11 @@ import java.util.concurrent.Executors;
 public class ServerMain {
     static void main(String[] args) {
         ServerProp serverProp = new ServerProp();
-        ConcurrentHashMap<String,ClientHandler> currentUsers = new ConcurrentHashMap<>();
-        ConcurrentHashMap<String, User> registeredUsers = new ConcurrentHashMap<>();
-        connectionStart(serverProp,registeredUsers,currentUsers);
+        ConcurrentHashMap<String,ClientHandler> currentUsers = new ConcurrentHashMap<>();  //HashMap degli utenti che hanno fatto il login in questo momento
+        ConcurrentHashMap<String, User> registeredUsers = new ConcurrentHashMap<>();  //HashMap generale degli utenti che hanno fatto il register
+        int timeRemaining = serverProp.getMatchTime();
+        //mando timeRemaining ad un thread che si occuperà di far scorrere il tempo e di avvisare il server quando la partita sarà terminata
+        connectionStart(serverProp,registeredUsers,currentUsers);  //meglio metterlo su un thread a parte?
     }
     //creazione connesione
     public static void connectionStart(ServerProp serverProp,ConcurrentHashMap<String, User> registeredUsers, ConcurrentHashMap<String, ClientHandler> currentUsers)   {
