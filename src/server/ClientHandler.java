@@ -4,16 +4,20 @@ import com.google.gson.*;
 import common.*;
 
 import java.io.*;
-import java.net.Socket;
+import java.net.*;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ClientHandler implements Runnable {
     private final Socket clientChannel;
     private final ConcurrentHashMap<String,User> registeredUsers;
     private final ConcurrentHashMap<String,ClientHandler> currentUsers;
-    private PlayerStatus status = null;
+    private PlayerStatus status = null;  //Indica se l'utente è online e le varie statistiche della partita
     private String username;
+    private int clientUDPport;
     public ClientHandler(Socket clientChannel, ConcurrentHashMap<String,User> registeredUsers, ConcurrentHashMap<String, ClientHandler> currentUsers) {
         this.clientChannel = clientChannel;
         this.registeredUsers = registeredUsers;
@@ -27,25 +31,27 @@ public class ClientHandler implements Runnable {
             DataOutputStream outputStream = new DataOutputStream(this.clientChannel.getOutputStream()))
         {
             while(isRunning){
+                //lettura del messaggio
                 int messageLength = inputStream.readInt();
                 byte[] byteMessage = new byte[messageLength];
                 inputStream.readFully(byteMessage);
                 String messageString = new String(byteMessage, StandardCharsets.UTF_8);
                 JsonObject messageJson = JsonParser.parseString(messageString).getAsJsonObject();
                 String operation = messageJson.get("operation").getAsString();
+                //Switch che gestisce tutti i tipi di messaggi JSON
                 switch(operation){
                     case "register": {
                         this.username = messageJson.get("username").getAsString();
                         String psw = messageJson.get("psw").getAsString();
                         if(registeredUsers.containsKey(username)){
                             ResponseMessage response = new ResponseMessage("registerResponse","409","Utente già registrato");
-                            SendResponse(response,outputStream);
+                            new SendResponse(response,outputStream);
                             System.out.println("DEBUG: Utente già registrato");
                         } else {
                             registeredUsers.put(username, new User(username,psw));
                             System.out.println("DEBUG: Utente " + username + " registrato");
                             ResponseMessage response = new ResponseMessage("registerResponse","200", "Utente registrato");
-                            SendResponse(response,outputStream);
+                            new SendResponse(response,outputStream);
                         }
                         break;
                     }
@@ -65,15 +71,15 @@ public class ClientHandler implements Runnable {
                                 currentUsers.put(newUsername, this);
                                 System.out.println("DEBUG: Credenziali aggiornate");
                                 ResponseMessage response =  new ResponseMessage("updateCredentials","200", "Credenziali aggiornate");
-                                SendResponse(response,outputStream);
+                                new SendResponse(response,outputStream);
                                 break;
                             }
                             ResponseMessage response = new ResponseMessage("updateCredentialsResponse","401","Password errata");
-                            SendResponse(response,outputStream);
+                            new SendResponse(response,outputStream);
                             break;
                         }
                         ResponseMessage response = new ResponseMessage("updateCredentialsResponse","401","Utente inesistente");
-                        SendResponse(response,outputStream);
+                        new SendResponse(response,outputStream);
                         break;
                     }
                     case "login": {
@@ -81,40 +87,64 @@ public class ClientHandler implements Runnable {
                         String psw = messageJson.get("psw").getAsString();
                         if(!registeredUsers.containsKey(username)){
                             ResponseMessage response = new ResponseMessage("loginResponse","401","Utente inesistente");
-                            SendResponse(response,outputStream);
+                            new SendResponse(response,outputStream);
                             System.out.println("DEBUG: Utente non registrato, impossibile fare il login");
                             break;
                         }
                         else if(currentUsers.containsKey(username)){
                             ResponseMessage response = new ResponseMessage("loginResponse","409","Utente già loggato");
-                            SendResponse(response,outputStream);
+                            new SendResponse(response,outputStream);
                             System.out.println("DEBUG: Login già fatto");
                             break;
                         }
-                        else if(registeredUsers.get(username).getPassword().equals(psw)){
-                            currentUsers.put(username, this);
-                            ResponseMessage response = new ResponseMessage("loginResponse","200", "Utente loggato");
-                            SendResponse(response,outputStream);
-                            System.out.println("DEBUG: Login effettuato");
-                            this.status = new PlayerStatus(username,true);
+                        else if(!registeredUsers.get(username).getPassword().equals(psw)){
+                            ResponseMessage response = new ResponseMessage("loginResponse","401","Password errata");
+                            new SendResponse(response,outputStream);
+                            System.out.println("DEBUG: Password errata");
                             break;
                         }
-                        ResponseMessage response = new ResponseMessage("loginResponse","401","Password errata");
-                        SendResponse(response,outputStream);
-                        System.out.println("DEBUG: Password errata");
+                        currentUsers.put(username, this);
+                        ResponseMessage response = new ResponseMessage("loginResponse","200", "Utente loggato");
+                        new SendResponse(response,outputStream);
+                        System.out.println("DEBUG: Login effettuato");
+                        this.status = new PlayerStatus(username,true);
+                        this.clientUDPport = messageJson.get("udpPort").getAsInt();
                         break;
                     }
                     case  "logout": {
                         System.out.println("DEBUG: Logout");
                         ResponseMessage response = new ResponseMessage("logoutResponse","200", "Logout");
-                        SendResponse(response,outputStream);
+                        new SendResponse(response,outputStream);
                         if(this.status != null)status.setOnline(false);
                         if(username != null && currentUsers.containsKey(username))currentUsers.remove(username,this);
                         isRunning = false;
                         break;
                     }
-                    case "submitProposal": {}
-                    case "requestGameInfo": {}
+                    case "submitProposal": {
+                        Gson gson = new Gson();
+                        ProposalMessage proposalMessage = gson.fromJson(messageString, ProposalMessage.class);
+                        ArrayList<String> proposal = proposalMessage.getProposal();
+                        if(this.status == null || !this.status.isOnline()) {
+                            ResponseMessage response = new  ResponseMessage("submitProposal","401","Utente non loggato");
+                            new SendResponse(response,outputStream);
+                            break;
+                        };
+                        if(!this.status.removeWordsGuessed(proposal)){
+                            ResponseMessage response = new ResponseMessage("submitProposalResponse","401", "Proposta errata");
+                            new SendResponse(response,outputStream);
+                            break;
+                        }
+                        ResponseMessage response = new ResponseMessage("submitProposalResponse","200", "Proposta corretta");
+                        new SendResponse(response,outputStream);
+                        break;
+                    }
+                    case "requestGameInfo": {
+                        if(this.status == null || !this.status.isOnline()) {
+                            ResponseMessage response = new  ResponseMessage("requestGameInfoResponse","401","Utente non loggato");
+                            new SendResponse(response,outputStream);
+                            break;
+                        };
+                    }
                     case "requestGameStats": {}
                     case "requestLeaderboard": {}
                     case "requestPlayerStats": {}
@@ -128,21 +158,31 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    private void SendResponse(Message message, DataOutputStream outputStream){
+    public void MatchEnd(){
+        //Manda un messaggio di fine partita al Client connesso a questo thread
+        if(this.status != null) this.status.setOnline(false);
+        Message endGameMessage = new Message("EndGame");
         Gson gson = new GsonBuilder().create();
-        String jsonMessage =  gson.toJson(message);
+        String jsonMessage =  gson.toJson(endGameMessage);
         byte[] jsonMessageBytes = jsonMessage.getBytes(StandardCharsets.UTF_8);
-        try{
-            outputStream.writeInt(jsonMessageBytes.length);
-            outputStream.write(jsonMessageBytes);
-            outputStream.flush();
-        } catch(IOException e){
-            System.out.println("Errore durante scrittura risposta al client");
+        int messageLength = jsonMessageBytes.length;
+        InetAddress clientAddr = this.clientChannel.getInetAddress();
+        int clientPort = this.clientUDPport;
+        DatagramPacket packet = new DatagramPacket(jsonMessageBytes,messageLength,clientAddr,clientPort);
+        try (DatagramSocket socket = new DatagramSocket();){
+            System.out.println("DEBUG: ClientSocket port: " + clientPort);
+            socket.send(packet);
+        } catch (SocketException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    public void MatchEnd(){
-        if(this.status != null) this.status.setOnline(false);
-        //salva il punteggio in User e cambia score generale partite vinte/perse
+    //Setta la lista di parole da indovinare
+    public void setListOfWords (ArrayList<String> listOfWords){
+        if(this.status != null){
+            this.status.setWordsLeft(listOfWords);
+        }
     }
 }

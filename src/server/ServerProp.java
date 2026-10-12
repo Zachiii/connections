@@ -7,6 +7,7 @@ public class ServerProp {
     private String port;
     private String backlog;
     public String matchTime;
+    public String gameID;
     public ServerProp() {
         try (FileReader reader = new FileReader( new File("src/server/ServerConfig.properties"))){
             Properties prop = new Properties();
@@ -15,6 +16,7 @@ public class ServerProp {
             this.port = prop.getProperty("port");
             this.backlog = prop.getProperty("backlog");
             this.matchTime = prop.getProperty("matchTime");
+            this.gameID = prop.getProperty("gameID");
         } catch (FileNotFoundException e) {
             System.out.println("File not found");
         } catch (IOException e) {
@@ -35,4 +37,6 @@ public class ServerProp {
     public int getMatchTime() {
         return Integer.parseInt(matchTime);
     }
+    public int getGameID () {
+        return Integer.parseInt(gameID);}
 }

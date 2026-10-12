@@ -1,6 +1,7 @@
 package server;
 
 public class User {
+    //Dati dell'utente generali
     private String username;
     private String password;
     private int puzzlesCompleted;
@@ -26,7 +27,7 @@ public class User {
         return password;
     }
     public void updateCredentials(String username,String password) {
-        if(username != null)this.username = username;
-        if(password != null)this.password = password;
+        if(!username.equalsIgnoreCase("null"))this.username = username;
+        if(!password.equalsIgnoreCase("null"))this.password = password;
     }
 }

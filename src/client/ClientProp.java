@@ -10,14 +10,16 @@ import java.util.Properties;
 public class ClientProp {
     //leggo configurazione Client di ClientConfig (#porta,indirizzi,valori timeout ecc...)
     private String host;
-    private String port;
+    private String serverPort;
+    private String clientPort;
     public String matchTime;
     public ClientProp() {
         try (FileReader reader = new FileReader( new File("src/client/ClientConfig.properties"))){
             Properties prop = new Properties();
             prop.load(reader);
             this.host = prop.getProperty("host");
-            this.port = prop.getProperty("port");
+            this.serverPort = prop.getProperty("serverPort");
+            this.clientPort = prop.getProperty("clientPort");
             this.matchTime = prop.getProperty("matchTime");
         } catch (FileNotFoundException e) {
             System.out.println("File not found");
@@ -33,9 +35,10 @@ public class ClientProp {
         }
         return null;
     }
-    public int getPort() {
-        return Integer.parseInt(port);
+    public int getServerPort() {
+        return Integer.parseInt(serverPort);
     }
+    public int getClientPort() {return Integer.parseInt(clientPort);}
     public int getMatchTime() {
         return Integer.parseInt(matchTime);
     }
