@@ -15,13 +15,16 @@ public class ClientHandler implements Runnable {
     private final Socket clientChannel;
     private final ConcurrentHashMap<String,User> registeredUsers;
     private final ConcurrentHashMap<String,ClientHandler> currentUsers;
+    ConcurrentHashMap<String,PlayerStatus> activePlayers;
     private PlayerStatus status = null;  //Indica se l'utente è online e le varie statistiche della partita
     private String username;
     private int clientUDPport;
-    public ClientHandler(Socket clientChannel, ConcurrentHashMap<String,User> registeredUsers, ConcurrentHashMap<String, ClientHandler> currentUsers) {
+    private ArrayList<String> listOfWords;
+    public ClientHandler(Socket clientChannel, ConcurrentHashMap<String,User> registeredUsers, ConcurrentHashMap<String, ClientHandler> currentUsers,ConcurrentHashMap<String,PlayerStatus> activePlayers) {
         this.clientChannel = clientChannel;
         this.registeredUsers = registeredUsers;
         this.currentUsers = currentUsers;
+        this.activePlayers = activePlayers;
     }
     @Override
     public void run() {
@@ -103,12 +106,24 @@ public class ClientHandler implements Runnable {
                             System.out.println("DEBUG: Password errata");
                             break;
                         }
+                        //Utente ha scritto username e password correttamente
                         currentUsers.put(username, this);
+                        this.clientUDPport = messageJson.get("udpPort").getAsInt();
+                        //Controllo se ha già giocato a questa partita
+                        if (this.activePlayers.containsKey(username)) {
+                            // Riconnessione: recupera lo stato esistente
+                            this.status = this.activePlayers.get(username);
+                            this.status.setOnline(true);
+                            System.out.println("DEBUG: Utente " + username + " rientrato. Parole rimaste: " + this.status.getWordsLeft().size());
+                        } else {
+                            // Prima volta in questo turno: crea lo stato e gli assegno le parole da indovinare
+                            this.status = new PlayerStatus(username, true);
+                            this.status.setWordsLeft(this.listOfWords);
+                            this.activePlayers.put(username, this.status);
+                        }
                         ResponseMessage response = new ResponseMessage("loginResponse","200", "Utente loggato");
                         new SendResponse(response,outputStream);
                         System.out.println("DEBUG: Login effettuato");
-                        this.status = new PlayerStatus(username,true);
-                        this.clientUDPport = messageJson.get("udpPort").getAsInt();
                         break;
                     }
                     case  "logout": {
@@ -179,10 +194,8 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    //Setta la lista di parole da indovinare
-    public void setListOfWords (ArrayList<String> listOfWords){
-        if(this.status != null){
-            this.status.setWordsLeft(listOfWords);
-        }
+    // Setta la lista di parole da indovinare
+    public void setListOfWords(ArrayList<String> listOfWords) {
+        this.listOfWords = listOfWords;
     }
 }

@@ -25,7 +25,7 @@ public class PlayerStatus {
     }
     public boolean isOnline() {return this.online;}
     public void setWordsLeft(ArrayList<String> wordsLeft) {
-        this.wordsLeft.addAll(wordsLeft);
+        this.wordsLeft = new ArrayList<>(wordsLeft);
         System.out.println("DEBUG: wordsLeft: " + this.wordsLeft);
     }
     public void setScore(int score) {

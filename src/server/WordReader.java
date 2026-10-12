@@ -2,49 +2,29 @@ package server;
 
 import java.io.FileReader;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 public class WordReader {
+    private static List<GameSupport> allGames;
     ConcurrentHashMap<String,ClientHandler> currentUsers;
-    int gameID;
-
-    public static List<GameSupport> loadGames(String filePath) {
+    public WordReader(){
         Gson gson = new Gson();
-        TypeToken<List<GameSupport>> listType = new TypeToken<List<GameSupport>>() {};
-
-        try (FileReader reader = new FileReader(filePath)) {
-            return gson.fromJson(reader, listType);
+        Type listType = new TypeToken<List<GameSupport>>() {}.getType();
+        try (FileReader reader = new FileReader("src/server/Connections_Data.json")) {
+            allGames = gson.fromJson(reader, listType);
         } catch (IOException e) {
-            System.err.println("Errore: " + e.getMessage());
-            return null;
+            System.err.println("Errore caricamento partite: " + e.getMessage());
         }
     }
-
-    //Legge da Connections_Data.json randomizza le parole per ogni utente
-    public WordReader(ConcurrentHashMap<String,ClientHandler> currentUsers, int gameID) {
-        this.currentUsers = currentUsers;
-        this.gameID = gameID;
-        List<GameSupport> games = loadGames("src/server/Connections_Data.json");
-
-        if (games != null && !games.isEmpty()) {
-            GameSupport game = games.get(this.gameID);
-
-            System.out.println("DEBUG: Partita caricata con ID: " + game.getGameId());
-            System.out.println("DEBUG: Numero di gruppi: " + game.getGroups().size());
-
-            // Stampa di riepilogo dei gruppi della partita
-            for (GroupSupport gruppo : game.getGroups()) {
-                System.out.println("DEBUG: Tema: " + gruppo.getTheme() + " -> Parole: " + gruppo.getWords());
-            }
-
-            //Setta la lista di parole da indovinare ad ogni utente loggato
-            for (ClientHandler user:  currentUsers.values()) {
-                user.setListOfWords(game.getShuffledWords());
-            }
+    // Ritorna la singola partita dato il gameID
+    public static GameSupport getGame(int gameId) {
+        if (allGames != null && gameId >= 0 && gameId < allGames.size()) {
+            return allGames.get(gameId);
         }
+        return null;
     }
-
 }
