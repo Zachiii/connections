@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
@@ -28,7 +29,10 @@ public class EndGameHandler implements Runnable {
                 System.out.println("Partita finita");
                 //serializzare punteggio
             }
-        } catch (IOException e) {
+        } catch (SocketException e) {
+            System.out.println("Chiusura Client");
+        }
+        catch (IOException e) {
             throw new RuntimeException(e);
         }
     }

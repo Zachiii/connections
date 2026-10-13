@@ -2,6 +2,7 @@ package server;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class PlayerStatus {
     //Dati dell'utente riguardanti la partita in corso
@@ -12,6 +13,7 @@ public class PlayerStatus {
     private int correctMatches;
     private int groupsLeft;
     private ArrayList<String> wordsLeft;
+    private ConcurrentHashMap<String, ArrayList<String>> groupWords;
     public PlayerStatus(String username, Boolean online) {
         this.username = username;
         this.online = online;
@@ -34,22 +36,31 @@ public class PlayerStatus {
         if (this.correctMatches == 2) this.score += 12;
         if (this.correctMatches == 3) this.score += 18;
     }
+    public void setGroupWords(ConcurrentHashMap<String,ArrayList<String>> groupWords) {
+        this.groupWords = groupWords;
+    }
     public int getScore() {return this.score;}
     public ArrayList<String> getWordsLeft() {
         return this.wordsLeft;
     }
-    public boolean removeWordsGuessed(List<String> wordsGuessed) {
-        for (String word : wordsGuessed) {
-            if (wordsLeft.contains(word)) {
-                this.wordsLeft.remove(word);
-            } else {
-                this.livesLeft -= 1;
-                this.score -= 4;
-                return false;
+
+    //Controllo delle proposte fatte dall'utente
+    public String removeWordsGuessed(List<String> wordsGuessed) {
+        System.out.println("DEBUG: wordsGuessed: " + wordsGuessed);
+        if (wordsGuessed == null || wordsGuessed.size() != 4 || !this.wordsLeft.containsAll(wordsGuessed)) {
+            return "MALFORMED"; // Proposta non valida: non toglie vite né punti
+        }
+        for(String group : groupWords.keySet()) {
+            if(groupWords.get(group).containsAll(wordsGuessed)) {
+                //risposta valida e corretta
+                this.wordsLeft.removeAll(wordsGuessed);
+                this.correctMatches++;
+                return group;
             }
         }
-        this.groupsLeft -= 1;
-        this.correctMatches += 1;
-        return true;
+        //risposta valida ma errata
+        this.livesLeft--;
+        this.score -= 4;
+        return null;
     }
 }

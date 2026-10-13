@@ -27,7 +27,7 @@ public class ResponseHandler {
             }
             String messageString = new String(byteMessage.array(), StandardCharsets.UTF_8);
             JsonObject messageJson = JsonParser.parseString(messageString).getAsJsonObject();
-            System.out.println(messageJson.get("response").getAsString());
+            System.out.println("Il server ha risposto con: " + messageJson.get("response").getAsString());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

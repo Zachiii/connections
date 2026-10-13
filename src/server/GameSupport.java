@@ -2,7 +2,9 @@ package server;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class GameSupport {
     private int gameId;
@@ -25,6 +27,13 @@ public class GameSupport {
         return allWords;
     }
 
+    public ConcurrentHashMap<String, ArrayList<String>> getGroupWords() {
+        ConcurrentHashMap<String, ArrayList<String>> groupWords = new ConcurrentHashMap<>();
+        for (GroupSupport group : groups) {
+            groupWords.put(group.getTheme(), (ArrayList<String>) group.getWords());
+        }
+        return groupWords;
+    }
     @Override
     public String toString() {
         return "Game{gameId=" + gameId + ", groups=" + groups + "}";

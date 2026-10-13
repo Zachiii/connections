@@ -28,9 +28,11 @@ public class GameManager implements Runnable {
             //inizia partita
             WordReader wordReader = new WordReader();
             this.currentGame = WordReader.getGame(gameID);
+            System.out.println("DEBUG: Partita caricata: " + this.currentGame.getGroupWords());
             if(this.currentGame != null){
                 for(ClientHandler client: this.currentUsers.values()){
-                    client.setListOfWords(this.currentGame.getShuffledWords());
+                    client.setShuffledListOfWords(this.currentGame.getShuffledWords());
+                    client.setGroupOfWords(this.currentGame.getGroupWords());
                 }
             }
             try {

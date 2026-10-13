@@ -13,8 +13,7 @@ public class ClientMain {
         InetAddress serverHost = clientProp.getHost();
         int serverPort = clientProp.getServerPort();
         SocketChannel channel = connectToHost(serverHost, serverPort);
-        try {
-            DatagramSocket socket = new DatagramSocket();
+        try (DatagramSocket socket = new DatagramSocket();){
             if(channel == null){
                 System.out.println("Il server è spento");
                 return;

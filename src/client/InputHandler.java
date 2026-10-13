@@ -16,7 +16,6 @@ public class InputHandler {
         Scanner scanner = new Scanner(System.in);
         boolean done = false;
         System.out.print("Enter your choice: ");
-        label:
         while(!done){
             String operation = scanner.nextLine().trim();
             switch (operation) {
@@ -59,8 +58,8 @@ public class InputHandler {
                 case "logout": {
                     Message message = new Message(operation);
                     new SendMessage(this.channel,message);
-                    done = true;
                     new ResponseHandler(this.channel);
+                    done = true;
                     break;
                 }
                 case "submitProposal": {
@@ -70,13 +69,13 @@ public class InputHandler {
                     while (!confirmed) {
                         System.out.println("Elenca le quattro parole:");
                         System.out.print("Prima parola: ");
-                        proposal.add(scanner.nextLine().trim());
+                        proposal.add(scanner.nextLine().trim().toUpperCase());
                         System.out.print("Seconda parola: ");
-                        proposal.add(scanner.nextLine().trim());
+                        proposal.add(scanner.nextLine().trim().toUpperCase());
                         System.out.print("Terza parola: ");
-                        proposal.add(scanner.nextLine().trim());
+                        proposal.add(scanner.nextLine().trim().toUpperCase());
                         System.out.print("Quarta parola: ");
-                        proposal.add(scanner.nextLine().trim());
+                        proposal.add(scanner.nextLine().trim().toUpperCase());
                         System.out.println("L'elenco è questo " + proposal);
                         System.out.print("Confermi questo elenco? (si/no): ");
                         String input;
