@@ -128,6 +128,16 @@ public class InputHandler {
                     new ResponseHandler(this.channel);
                     break;
                 }
+                case "help": {
+                    System.out.println("Lista dei comandi:");
+                    System.out.println(" - Scrivere register per registrarsi");
+                    System.out.println(" - Scrivere login per fare il login");
+                    System.out.println(" - Scrivere logout per fare il logout");
+                    System.out.println(" - Scrivere requestGameInfo per ricevere aggiornamenti sulla partita in corso");
+                    System.out.println(" - Scrivere requestGameStat per ricevere ");
+                    System.out.println(" - Scrivere requestLeaderboard per ricevere una leaderboard personalizzata dei giocatori");
+                    break;
+                }
             }
         }
     }
