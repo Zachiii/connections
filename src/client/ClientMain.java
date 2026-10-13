@@ -18,6 +18,7 @@ public class ClientMain {
                 System.out.println("Il server è spento");
                 return;
             };
+            printWelcomeBanner();
             //Faccio partire il thread che aspetta la fine della partita
             Thread endGameHandler = new Thread(new EndGameHandler(socket));
             endGameHandler.start();
@@ -26,6 +27,7 @@ public class ClientMain {
             e.getMessage();
         }
     }
+
     //creazione connessione usando NIO
     public static SocketChannel connectToHost(InetAddress serverHost, int serverPort){
         try {
@@ -33,7 +35,7 @@ public class ClientMain {
             clientChannel.configureBlocking(false);
             clientChannel.connect(new InetSocketAddress(serverHost, serverPort));
             while (!clientChannel.finishConnect()){ Thread.sleep(10);}
-            System.out.println("Mi sono connesso?: " + clientChannel.isConnected());
+            //System.out.println("Mi sono connesso?: " + clientChannel.isConnected());
             return clientChannel;
         } catch (IOException e) {
             System.out.println(e.getMessage());
@@ -42,5 +44,23 @@ public class ClientMain {
             Thread.currentThread().interrupt();
             return null;
         }
+    }
+
+    //Banner di inizio gioco
+    public static void printWelcomeBanner() {
+        String banner = """
+       \s
+         ██████╗ ██████╗ ███╗   ██╗███╗   ██╗███████╗ ██████╗████████╗██╗ ██████╗ ███╗   ██╗███████╗
+        ██╔════╝██╔═══██╗████╗  ██║████╗  ██║██╔════╝██╔════╝╚══██╔══╝██║██╔═══██╗████╗  ██║██╔════╝
+        ██║     ██║   ██║██╔██╗ ██║██╔██╗ ██║█████╗  ██║        ██║   ██║██║   ██║██╔██╗ ██║███████╗
+        ██║     ██║   ██║██║╚██╗██║██║╚██╗██║██╔══╝  ██║        ██║   ██║██║   ██║██║╚██╗██║╚════██║
+        ╚██████╗╚██████╔╝██║ ╚████║██║ ╚████║███████╗╚██████╗   ██║   ██║╚██████╔╝██║ ╚████║███████║
+         ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝  ╚═══╝╚══════╝ ╚═════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝╚══════╝
+
+        =============================================================================================
+                                       BENVENUTI IN CONNECTIONS!
+        =============================================================================================
+      \s""";
+        System.out.println(banner);
     }
 }

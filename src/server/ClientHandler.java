@@ -12,9 +12,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ClientHandler implements Runnable {
     private final Socket clientChannel;
-    private final ConcurrentHashMap<String,User> registeredUsers;
-    private final ConcurrentHashMap<String,ClientHandler> currentUsers;
-    private ConcurrentHashMap<String,PlayerStatus> activePlayers;
+    private final ConcurrentHashMap<String,User> registeredUsers;         //HashMap generale degli utenti che hanno fatto il register
+    private final ConcurrentHashMap<String,ClientHandler> currentUsers;   //HashMap degli utenti che hanno fatto il login
+    private ConcurrentHashMap<String,PlayerStatus> activePlayers;         //HashMap degli utenti che stanno gicocando
     private PlayerStatus playerStatus = null;                //Indica se l'utente è online e le varie statistiche della partita
     private String username;
     private int clientUDPport;
