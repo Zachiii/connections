@@ -7,6 +7,7 @@ import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ClientHandler implements Runnable {
@@ -49,6 +50,11 @@ public class ClientHandler implements Runnable {
                     case "register": {
                         this.username = messageJson.get("username").getAsString();
                         String psw = messageJson.get("psw").getAsString();
+                        if (Objects.equals(this.username, "") || Objects.equals(psw, "")){
+                            System.out.println("DEBUG: Username o password non validi");
+                            ResponseMessage response = new ResponseMessage("registerResponse","401", "Username e password non possono essere vuoti");
+                            new SendResponse(response,outputStream);
+                        }
                         if(registeredUsers.containsKey(username)){
                             ResponseMessage response = new ResponseMessage("registerResponse","409","Utente già registrato");
                             new SendResponse(response,outputStream);

@@ -15,8 +15,8 @@ public class InputHandler {
         this.socket = socket;
         Scanner scanner = new Scanner(System.in);
         boolean done = false;
-        System.out.print("Enter your choice: ");
         while(!done){
+            System.out.print("Cosa vuoi fare? (Scrivere help per avere una lista dei comandi) ");
             String operation = scanner.nextLine().trim();
             switch (operation) {
                 case "register": {
@@ -65,7 +65,6 @@ public class InputHandler {
                 case "submitProposal": {
                     ArrayList<String> proposal = new ArrayList<>();
                     Boolean confirmed = false;
-                    Boolean submit = false;
                     while (!confirmed) {
                         System.out.println("Elenca le quattro parole:");
                         System.out.print("Prima parola: ");
@@ -129,13 +128,13 @@ public class InputHandler {
                     break;
                 }
                 case "help": {
-                    System.out.println("Lista dei comandi:");
-                    System.out.println(" - Scrivere register per registrarsi");
-                    System.out.println(" - Scrivere login per fare il login");
-                    System.out.println(" - Scrivere logout per fare il logout");
-                    System.out.println(" - Scrivere requestGameInfo per ricevere aggiornamenti sulla partita in corso");
-                    System.out.println(" - Scrivere requestGameStat per ricevere ");
-                    System.out.println(" - Scrivere requestLeaderboard per ricevere una leaderboard personalizzata dei giocatori");
+                    System.out.println("\nLista dei comandi:\n" +
+                            " - Scrivere login per fare il login\n" +
+                            " - Scrivere logout per fare il logout\n" +
+                            " - Scrivere submitProposal per creare una proposta di gioco\n" +
+                            " - Scrivere requestGameInfo per ricevere aggiornamenti sulla partita in corso\n" +
+                            " - Scrivere requestGameStat per ricevere\n" +
+                            " - Scrivere requestLeaderboard per ricevere una leaderboard personalizzata dei giocatori\n");
                     break;
                 }
             }
