@@ -1,6 +1,7 @@
 package client;
 
 import common.*;
+import server.SendTCPResponse;
 
 import java.net.DatagramSocket;
 import java.nio.channels.SocketChannel;
@@ -30,7 +31,7 @@ public class InputHandler {
                     break;
                 }
                 case "updateCredentials": {
-                    System.out.println("Se non si vuole aggiornare la password o lo username: mettere null alla richiesta di Password nuova e/o Username nuovo");
+                    System.out.println("Se non si vuole aggiornare la password o lo username premere semplicemente invio sul campo che non si vuole aggiornare");
                     System.out.print("Username vecchio: ");
                     String oldUsrname = scanner.nextLine().trim();
                     System.out.print("Password vecchio: ");
@@ -129,12 +130,18 @@ public class InputHandler {
                 }
                 case "help": {
                     System.out.println("\nLista dei comandi:\n" +
+                            " - Scrivere register per registrarsi\n" +
                             " - Scrivere login per fare il login\n" +
                             " - Scrivere logout per fare il logout\n" +
                             " - Scrivere submitProposal per creare una proposta di gioco\n" +
                             " - Scrivere requestGameInfo per ricevere aggiornamenti sulla partita in corso\n" +
                             " - Scrivere requestGameStat per ricevere\n" +
                             " - Scrivere requestLeaderboard per ricevere una leaderboard personalizzata dei giocatori\n");
+                    break;
+                }
+
+                default: {
+                    System.out.println("Comando non riconosciuto");
                     break;
                 }
             }

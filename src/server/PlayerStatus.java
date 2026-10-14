@@ -8,6 +8,7 @@ public class PlayerStatus {
     //Dati dell'utente riguardanti la partita in corso
     private String username;
     private Boolean online;
+    private Boolean gameEnded;
     private int score;
     private int livesLeft;
     private int correctMatches;
@@ -17,29 +18,45 @@ public class PlayerStatus {
     public PlayerStatus(String username, Boolean online) {
         this.username = username;
         this.online = online;
+        this.gameEnded = false;
         this.score = 0;
-        this.livesLeft = 3;
+        this.livesLeft = 4;
         this.correctMatches = 0;
         this.groupsLeft = 4;
     }
+
     public void setOnline(Boolean online) {
         this.online = online;
     }
     public boolean isOnline() {return this.online;}
+    public boolean isGameEnded() {return this.gameEnded;}
+
+    //Setta la lista di parole da indovinare
     public void setWordsLeft(ArrayList<String> wordsLeft) {
         this.wordsLeft = new ArrayList<>(wordsLeft);
         System.out.println("DEBUG: wordsLeft: " + this.wordsLeft);
     }
-    public void setScore(int score) {
-        if (this.correctMatches == 0 && this.livesLeft == 3) this.score = 0;
-        if (this.correctMatches == 1) this.score += 6;
-        if (this.correctMatches == 2) this.score += 12;
-        if (this.correctMatches == 3) this.score += 18;
+
+    public void setScore() {
+        int bonus = 0;
+        if (this.correctMatches == 1) bonus = 6;
+        else if (this.correctMatches == 2) bonus = 12;
+        else if (this.correctMatches >= 3) bonus = 18;
+
+        int erroriFatti = 4 - this.livesLeft;
+        int penalita = erroriFatti * 4;
+
+        this.score = bonus - penalita;
     }
+
     public void setGroupWords(ConcurrentHashMap<String,ArrayList<String>> groupWords) {
         this.groupWords = groupWords;
     }
+
     public int getScore() {return this.score;}
+
+    public int getLivesLeft() {return this.livesLeft;}
+
     public ArrayList<String> getWordsLeft() {
         return this.wordsLeft;
     }
@@ -55,12 +72,16 @@ public class PlayerStatus {
                 //risposta valida e corretta
                 this.wordsLeft.removeAll(wordsGuessed);
                 this.correctMatches++;
+                this.groupsLeft--;
+                this.setScore();
+                if(this.groupsLeft == 1) return "WIN";
                 return group;
             }
         }
         //risposta valida ma errata
         this.livesLeft--;
-        this.score -= 4;
+        this.setScore();
+        if(this.livesLeft == 0) return "ENDGAME";
         return null;
     }
 }

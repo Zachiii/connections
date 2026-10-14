@@ -27,7 +27,7 @@ public class User {
         return password;
     }
     public void updateCredentials(String username,String password) {
-        if(!username.equalsIgnoreCase("null"))this.username = username;
-        if(!password.equalsIgnoreCase("null"))this.password = password;
+        if(!username.isEmpty())this.username = username;
+        if(!password.isEmpty())this.password = password;
     }
 }

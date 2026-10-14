@@ -20,6 +20,7 @@ public class GameManager implements Runnable {
     public GameSupport getCurrentGame() {
         return this.currentGame;
     }
+    public int getGameID() {return this.gameID;}
 
     @Override
     public void run() {
