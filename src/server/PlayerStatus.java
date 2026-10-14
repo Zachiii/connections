@@ -14,6 +14,7 @@ public class PlayerStatus {
     private int correctMatches;
     private int groupsLeft;
     private ArrayList<String> wordsLeft;
+    private ArrayList<String> listWordsGuessed;
     private ConcurrentHashMap<String, ArrayList<String>> groupWords;
     public PlayerStatus(String username, Boolean online) {
         this.username = username;
@@ -23,6 +24,7 @@ public class PlayerStatus {
         this.livesLeft = 4;
         this.correctMatches = 0;
         this.groupsLeft = 4;
+        this.wordsLeft = new ArrayList<>();
     }
 
     public void setOnline(Boolean online) {
@@ -57,6 +59,8 @@ public class PlayerStatus {
 
     public int getLivesLeft() {return this.livesLeft;}
 
+    public ArrayList<String> getListWordsGuessed() {return this.listWordsGuessed;}
+
     public ArrayList<String> getWordsLeft() {
         return this.wordsLeft;
     }
@@ -71,6 +75,7 @@ public class PlayerStatus {
             if(groupWords.get(group).containsAll(wordsGuessed)) {
                 //risposta valida e corretta
                 this.wordsLeft.removeAll(wordsGuessed);
+                this.listWordsGuessed.addAll(wordsGuessed);
                 this.correctMatches++;
                 this.groupsLeft--;
                 this.setScore();

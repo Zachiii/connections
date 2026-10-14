@@ -248,6 +248,7 @@ public class ClientHandler implements Runnable {
                             break;
                         } else if (result.equals("ENDGAME")) {
                             // 403 / Fine vite: notifica esaurimento e fine partita
+                            this.registeredUsers.get(username).resetStreak();
                             ResponseMessage response = new ResponseMessage(
                                     "submitProposalResponse",
                                     "403",
@@ -258,6 +259,7 @@ public class ClientHandler implements Runnable {
                             break;
                         } else if (result.equals("WIN")) {
                             // 200: Vittoria partita
+                            this.registeredUsers.get(username).addStreak();
                             ResponseMessage response = new ResponseMessage("submitProposalResponse", "200", "Complimenti! Hai completato tutti i gruppi e vinto la partita!");
                             new SendTCPResponse(response, outputStream);
                             this.MatchEnd();
@@ -284,8 +286,50 @@ public class ClientHandler implements Runnable {
                         break;
                     }
 
-                    case "requestGameStats":
-                    case "requestLeaderboard":
+                    case "requestGameStats": {
+                        // 401 se non autenticato
+                        if (this.username == null || !currentUsers.containsKey(this.username)) {
+                            ResponseMessage response = new ResponseMessage(operation + "Response", "401", "Accesso non autorizzato");
+                            response.setWordsLeft(this.playerStatus.getWordsLeft());
+                            response.setListWordsGuessed(this.playerStatus.getListWordsGuessed());
+                            response.setMistakes(4 - this.playerStatus.getLivesLeft());
+                            response.setGamePoints(this.playerStatus.getScore());
+                            new SendTCPResponse(response, outputStream);
+                            break;
+                        }
+                        // 200 quando restituisci i dati richiesti
+                        String gameID = messageJson.has("gameID") ? messageJson.get("gameID").getAsString() : "";
+                        if(gameID.equals("current")) {
+                            ResponseMessage response = new ResponseMessage(operation + "Response", "200", "Dati recuperati con successo");
+                            new SendTCPResponse(response, outputStream);
+                            break;
+                        } else if (!gameID.isEmpty()) {
+                            ResponseMessage response = new ResponseMessage(operation + "Response", "200", "Dati recuperati con successo");
+                            new SendTCPResponse(response, outputStream);
+                            break;
+                        }
+                        break;
+                    }
+                    case "requestLeaderboard":{
+                        // 401 se non autenticato
+                        if (this.username == null || !currentUsers.containsKey(this.username)) {
+                            ResponseMessage response = new ResponseMessage(operation + "Response", "401", "Accesso non autorizzato");
+                            new SendTCPResponse(response, outputStream);
+                            break;
+                        }
+                        // 200 quando restituisci i dati richiesti
+                        String gameID = messageJson.has("gameID") ? messageJson.get("gameID").getAsString() : "";
+                        if(gameID.equals("current")) {
+                            ResponseMessage response = new ResponseMessage(operation + "Response", "200", "Dati recuperati con successo");
+                            new SendTCPResponse(response, outputStream);
+                            break;
+                        } else if (!gameID.isEmpty()) {
+                            ResponseMessage response = new ResponseMessage(operation + "Response", "200", "Dati recuperati con successo");
+                            new SendTCPResponse(response, outputStream);
+                            break;
+                        }
+                        break;
+                    }
                     case "requestPlayerStats": {
                         // 401 se non autenticato
                         if (this.username == null || !currentUsers.containsKey(this.username)) {
@@ -315,10 +359,11 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    //AGGIUNGERE LA POSSIBILITà PER L'UTENTE DI SCEGLIERE SE RIMANERE LOGGATO O MENO
     public void MatchEnd() {
         this.playerStatus.setScore();
+        this.registeredUsers.get(username).setPoints(this.playerStatus.getScore());
         if (this.playerStatus != null) this.playerStatus.setOnline(false);
-
         // Notifiche UDP di fine partita con codice 500
         Message endGameMessage = new Message("EndGame");
         this.sendUDPMessage(endGameMessage);
