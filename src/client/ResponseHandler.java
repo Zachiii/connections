@@ -12,12 +12,23 @@ import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
 
 public class ResponseHandler {
-    public ResponseHandler(SocketChannel channel){
+    private final boolean success;
+
+    public ResponseHandler(SocketChannel channel) {
+        this.success = handleResponse(channel);
+    }
+
+    public boolean isSuccess() {
+        return success;
+    }
+
+    public boolean handleResponse(SocketChannel channel){
         ByteBuffer byteLength = ByteBuffer.allocate(4);
         try {
             while (byteLength.hasRemaining()){
                 if(channel.read(byteLength) == -1){
-                    throw new IOException("Server disconneso durante lettura della lunghezza");
+                    System.out.println("\n[AVVISO] Connessione chiusa: il server è stato spento o non risponde.");
+                    return false;
                 }
             }
             byteLength.flip();
@@ -25,13 +36,14 @@ public class ResponseHandler {
             ByteBuffer byteMessage = ByteBuffer.allocate(length);
             while (byteMessage.hasRemaining()){
                 if(channel.read(byteMessage) == -1){
-                    throw new IOException("Server disconneso durante lettura del messaggio");
+                    System.out.println("\n[AVVISO] Connessione interrotta durante la ricezione del payload.");
+                    return false;
                 }
             }
             String messageString = new String(byteMessage.array(), StandardCharsets.UTF_8);
             Gson gson = new Gson();
             ResponseMessage responseMessage = gson.fromJson(messageString, ResponseMessage.class);
-            System.out.println("Il server ha risposto con: " + responseMessage.getResponse());
+            System.out.println("Risposta server: [" + responseMessage.getCode() + "] " + responseMessage.getResponse());
             switch(responseMessage.getOperation()){
                 case "loginResponse": {
                     GameInfoResponse response = gson.fromJson(messageString, GameInfoResponse.class);
@@ -47,8 +59,10 @@ public class ResponseHandler {
                     }
                 }
             }
+            return true;
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            System.out.println("\n[ERRORE] Comunicazione TCP con il server interrotta.");
+            return false;
         }
     }
 }

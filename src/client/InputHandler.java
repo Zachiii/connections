@@ -3,6 +3,7 @@ package client;
 import common.*;
 import server.SendTCPResponse;
 
+import java.io.IOException;
 import java.net.DatagramSocket;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
@@ -27,7 +28,7 @@ public class InputHandler {
                     String password = scanner.nextLine().trim();
                     RegisterMessage message = new RegisterMessage(operation, username, password);
                     new SendMessage(this.channel,message);
-                    new ResponseHandler(this.channel);
+                    if (!new ResponseHandler(this.channel).isSuccess()) done = true;
                     break;
                 }
                 case "updateCredentials": {
@@ -42,7 +43,7 @@ public class InputHandler {
                     String newPsw = scanner.nextLine().trim();
                     UpdateCredentialsMessage message = new UpdateCredentialsMessage(operation, oldUsrname, newUsername, oldPsw, newPsw);
                     new SendMessage(this.channel,message);
-                    new ResponseHandler(this.channel);
+                    if (!new ResponseHandler(this.channel).isSuccess()) done = true;
                     break;
                 }
                 case "login": {
@@ -53,7 +54,7 @@ public class InputHandler {
                     int udpPort = this.socket.getLocalPort();
                     LoginMessage message = new LoginMessage(operation, username, password,udpPort);
                     new SendMessage(this.channel,message);
-                    new ResponseHandler(this.channel);
+                    if (!new ResponseHandler(this.channel).isSuccess()) done = true;
                     break;
                 }
                 case "logout": {
@@ -85,7 +86,7 @@ public class InputHandler {
                                 confirmed = true;
                                 ProposalMessage message = new ProposalMessage(operation, proposal);
                                 new SendMessage(this.channel,message);
-                                new ResponseHandler(this.channel);
+                                if (!new ResponseHandler(this.channel).isSuccess()) done = true;
                                 break;
                             } else if (input.equals("no")) {
                                 System.out.println("Rifare l'elenco");
@@ -101,7 +102,7 @@ public class InputHandler {
                     String gameID = scanner.nextLine().trim();
                     GameMessage message = new GameMessage(operation, gameID);
                     new SendMessage(this.channel,message);
-                    new ResponseHandler(this.channel);
+                    if (!new ResponseHandler(this.channel).isSuccess()) done = true;
                     break;
                 }
                 case "requestGameStats": {
@@ -109,7 +110,7 @@ public class InputHandler {
                     String gameID = scanner.nextLine().trim();
                     GameMessage message = new GameMessage(operation, gameID);
                     new SendMessage(this.channel,message);
-                    new ResponseHandler(this.channel);
+                    if (!new ResponseHandler(this.channel).isSuccess()) done = true;
                     break;
                 }
                 case "requestLeaderboard": {
@@ -119,13 +120,13 @@ public class InputHandler {
                     String topPlayers = scanner.nextLine().trim();
                     LeaderboardMessage message = new LeaderboardMessage(operation,username, topPlayers);
                     new SendMessage(this.channel,message);
-                    new ResponseHandler(this.channel);
+                    if (!new ResponseHandler(this.channel).isSuccess()) done = true;
                     break;
                 }
                 case "requestPlayerStats": {
                     Message message = new Message(operation);
                     new SendMessage(this.channel,message);
-                    new ResponseHandler(this.channel);
+                    if (!new ResponseHandler(this.channel).isSuccess()) done = true;
                     break;
                 }
                 case "help": {
@@ -146,6 +147,15 @@ public class InputHandler {
                     break;
                 }
             }
+        }
+        try {
+            if (this.channel != null && this.channel.isOpen()) {
+                this.channel.close();
+            }
+        } catch (IOException ignored) {}
+
+        if (this.socket != null && !this.socket.isClosed()) {
+            this.socket.close();
         }
     }
 }

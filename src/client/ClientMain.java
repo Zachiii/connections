@@ -24,7 +24,14 @@ public class ClientMain {
             endGameHandler.start();
             new InputHandler(channel,socket);
         } catch (IOException e) {
-            e.getMessage();
+            System.err.println("Errore apertura socket UDP client: " + e.getMessage());
+        } finally {
+            try {
+                if (channel != null && channel.isOpen()) {
+                    channel.close();
+                }
+            } catch (IOException ignored) {}
+            System.out.println("Client terminato con successo.");
         }
     }
 
@@ -36,12 +43,9 @@ public class ClientMain {
             clientChannel.connect(new InetSocketAddress(serverHost, serverPort));
             while (!clientChannel.finishConnect()){ Thread.sleep(10);}
             //System.out.println("Mi sono connesso?: " + clientChannel.isConnected());
+            clientChannel.configureBlocking(true); //????????????
             return clientChannel;
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
-            return null;
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+        } catch (IOException | InterruptedException e) {
             return null;
         }
     }

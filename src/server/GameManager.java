@@ -1,5 +1,6 @@
 package server;
 
+import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -11,12 +12,20 @@ public class GameManager implements Runnable {
     private int gameID;
     private volatile boolean isRunning;
     private volatile GameSupport currentGame;
-    public GameManager(ConcurrentHashMap<String,ClientHandler> currentUsers,ConcurrentHashMap<String,PlayerStatus> activePlayers, Long matchDurationSeconds, int gameID, boolean isRunning) {
+    ServerProp serverProp;
+    public GameManager(
+            ConcurrentHashMap<String,ClientHandler> currentUsers,
+            ConcurrentHashMap<String,PlayerStatus> activePlayers,
+            ServerProp serverProp,
+            Long matchDurationSeconds,
+            int gameID,
+            boolean isRunning) {
         this.currentUsers = currentUsers;
         this.matchDurationSeconds = matchDurationSeconds;
         this.gameID = gameID;
         this.isRunning = isRunning;
         this.activePlayers = activePlayers;
+        this.serverProp = serverProp;
     }
 
     public GameSupport getCurrentGame() {
@@ -57,6 +66,7 @@ public class GameManager implements Runnable {
             }
             activePlayers.clear();  //Pulisco la lista di giocatori attivi
             gameID++;
+            this.serverProp.updateGameID();
         }
     }
     public long getRemainingTimeSeconds() {

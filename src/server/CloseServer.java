@@ -12,17 +12,20 @@ public class CloseServer implements Runnable {
     private final GameManager gameManager;
     private final Thread timerThread;
     private final ConcurrentHashMap<String, User> registeredUsers;
+    private final ConcurrentHashMap<String, ClientHandler> currentUsers;
 
     public CloseServer(ServerSocket serverSocket,
                        ExecutorService pool,
                        GameManager gameManager,
                        Thread timerThread,
-                       ConcurrentHashMap<String, User> registeredUsers) {
+                       ConcurrentHashMap<String, User> registeredUsers,
+                       ConcurrentHashMap<String, ClientHandler> currentUsers) {
         this.serverSocket = serverSocket;
         this.pool = pool;
         this.gameManager = gameManager;
         this.timerThread = timerThread;
         this.registeredUsers = registeredUsers;
+        this.currentUsers = currentUsers;
     }
 
     @Override
@@ -35,7 +38,7 @@ public class CloseServer implements Runnable {
             if ("exit".equalsIgnoreCase(line) || "stop".equalsIgnoreCase(line)) {
                 System.out.println("[SERVER] Procedura di spegnimento avviata...");
 
-                // 1. Ferma il loop di GameManager e svegliao dal Thread.sleep
+                //Ferma il loop di GameManager e sveglialo dal Thread.sleep
                 if (gameManager != null) {
                     gameManager.stop();
                 }
@@ -43,24 +46,28 @@ public class CloseServer implements Runnable {
                     timerThread.interrupt();
                 }
 
-                // 2. Persistenza finale su disco (users.json ed eventuali altri file)
+                //Chiude tutte le connessioni con i client attive
+                for (ClientHandler client : currentUsers.values()) {
+                    client.closeConnection();
+                }
+                currentUsers.clear();
+
+                //Persistenza finale su disco
                 System.out.println("[SERVER] Salvataggio dati in corso...");
                 UserManager.saveUsers(registeredUsers);
-                // Se hai altri file di persistenza:
-                // HistoryManager.saveMatches(...);
 
-                // 3. Chiusura del thread pool
-                if (pool != null) {
-                    pool.shutdown();
-                }
-
-                // 4. Chiude la ServerSocket: questo sblocca immediatamente la accept()
+                //Chiude la ServerSocket: questo sblocca immediatamente la accept()
                 try {
                     if (serverSocket != null && !serverSocket.isClosed()) {
                         serverSocket.close();
                     }
                 } catch (IOException e) {
                     System.err.println("Errore chiusura ServerSocket: " + e.getMessage());
+                }
+
+                //Chiusura del thread pool
+                if (pool != null) {
+                    pool.shutdown();
                 }
 
                 System.out.println("[SERVER] Arresto completato.");

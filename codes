@@ -1,1 +1,51 @@
-register:   200: Registrazione completata.   400: Username o password vuoti/mancanti.409: Username già registrato.   login:   200: Login effettuato con successo.   401: Username inesistente o password errata.   409: Utente già connesso su un'altra sessione.   updateCredentials:   200: Credenziali aggiornate con successo.   400: Nuovi campi non validi o vuoti.401: Utente inesistente o vecchia password errata.   409: Il nuovo username scelto è già occupato da un altro account.logout:   200: Logout effettuato.   401: Nessuna sessione attiva da disconnettere.submitProposal:   200: Proposta corretta (gruppo individuato).   400: Proposta malformata (non sono 4 parole o parole non appartenenti alla lavagna rimanente).   401: Utente non loggato.   403: Partita terminata / tempo scaduto / giocatore senza vite.422 (o 401 se preferisci tenerlo): Proposta valida ma combinazione errata (scala 1 vita e $-4$ punti).   requestGameInfo / requestGameStats / requestLeaderboard / requestPlayerStats:   200: Dati restituiti correttamente.401: Utente non loggato.   500: Errore nel recupero della persistenza/dati da disco.
+================================================================================
+                    SPECIFICA DEI CODICI DI RISPOSTA SERVER
+================================================================================
+
+1. register
+   - 200: Registrazione completata con successo.
+   - 400: Username o password vuoti/mancanti.
+   - 409: Username già registrato.
+
+2. login
+   - 200: Login effettuato con successo.
+   - 400: Username o password vuoti/mancanti.
+   - 401: Username inesistente o password errata.
+   - 409: Utente già connesso su un'altra sessione.
+
+3. updateCredentials
+   - 200: Credenziali aggiornate con successo.
+   - 400: Nuovi campi non validi o vuoti.
+   - 401: Utente inesistente o vecchia password errata.
+   - 409: Il nuovo username scelto è già occupato da un altro account.
+
+4. logout
+   - 200: Logout effettuato con successo.
+   - 401: Nessuna sessione attiva da disconnettere.
+
+5. submitProposal
+   - 200: Proposta corretta (gruppo individuato con successo).
+   - 400: Proposta malformata (non sono 4 parole o parole non appartenenti alla lavagna rimanente; nessuna penalità applicata).
+   - 401: Utente non loggato / sessione non autenticata.
+   - 403: Partita terminata / tempo scaduto / giocatore senza vite rimaste.
+   - 422: Proposta valida ma combinazione errata (scala 1 vita e applica -4 punti di penalità).
+
+6. requestGameInfo
+   - 200: Dati sullo stato della partita restituiti correttamente.
+   - 401: Utente non loggato.
+   - 500: Errore nel recupero della persistenza o dati da disco.
+
+7. requestGameStats
+   - 200: Statistiche aggregate della partita restituite correttamente.
+   - 401: Utente non loggato.
+   - 500: Errore nel recupero della persistenza o dati da disco.
+
+8. requestLeaderboard
+   - 200: Classifica richiesta restituita correttamente.
+   - 401: Utente non loggato.
+   - 500: Errore nel recupero della persistenza o dati da disco.
+
+9. requestPlayerStats
+   - 200: Statistiche storiche del giocatore restituite correttamente.
+   - 401: Utente non loggato.
+   - 500: Errore nel recupero della persistenza o dati da disco.

@@ -23,7 +23,7 @@ public class ServerMain {
         int gameID = serverProp.getGameID();
 
         //AVVIO GameManager
-        GameManager gameManager = new GameManager(currentUsers,activePlayers, matchDurationSeconds,gameID,true);
+        GameManager gameManager = new GameManager(currentUsers,activePlayers,serverProp,matchDurationSeconds,gameID,true);
         Thread timerThread = new Thread(gameManager);
         timerThread.start();
 
@@ -45,7 +45,7 @@ public class ServerMain {
             System.out.println("DEBUG: Server in ascolto su questo indirizzo: " + serverSocket.getLocalSocketAddress());
 
             // AVVIO DEL THREAD DI SPEGNIMENTO DEDICATO
-            CloseServer closeServerTask = new CloseServer(serverSocket, pool, gameManager, timerThread, registeredUsers);
+            CloseServer closeServerTask = new CloseServer(serverSocket, pool, gameManager, timerThread, registeredUsers,currentUsers);
             Thread closeThread = new Thread(closeServerTask, "CloseServer-Thread");
             closeThread.start();
 

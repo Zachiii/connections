@@ -18,6 +18,7 @@ public class ClientHandler implements Runnable {
     private PlayerStatus playerStatus = null;
     private String username;
     private int clientUDPport;
+    private volatile boolean isRunning = true;
     private final GameManager gameManager;
 
     public ClientHandler(Socket clientChannel,
@@ -34,11 +35,10 @@ public class ClientHandler implements Runnable {
 
     @Override
     public void run() {
-        boolean isRunning = true;
         try (DataInputStream inputStream = new DataInputStream(this.clientChannel.getInputStream());
              DataOutputStream outputStream = new DataOutputStream(this.clientChannel.getOutputStream())) {
 
-            while (isRunning) {
+            while (this.isRunning) {
                 // Lettura lunghezza prefissa e messaggio JSON
                 int messageLength = inputStream.readInt();
                 byte[] byteMessage = new byte[messageLength];
@@ -208,7 +208,7 @@ public class ClientHandler implements Runnable {
                         // 200: Logout completato
                         ResponseMessage response = new ResponseMessage("logoutResponse", "200", "Logout effettuato");
                         new SendTCPResponse(response, outputStream);
-                        isRunning = false;
+                        this.isRunning = false;
                         break;
                     }
 
@@ -413,6 +413,7 @@ public class ClientHandler implements Runnable {
         this.sendUDPMessage(endGameMessage);
         ResponseMessage endGameStats = new ResponseMessage("EndGameStats", "500", "Partita finita");
         this.sendUDPMessage(endGameStats);
+        //chiedere all'utente se vuole rimanere loggato
     }
 
     public void sendUDPMessage(Message message) {
@@ -436,5 +437,14 @@ public class ClientHandler implements Runnable {
 
     public void setGroupOfWords(ConcurrentHashMap<String, ArrayList<String>> groupOfWords) {
         if (this.playerStatus != null) this.playerStatus.setGroupWords(groupOfWords);
+    }
+
+    public void closeConnection() {
+        this.isRunning = false; // Rendi isRunning un campo della classe, non una variabile locale del run()!
+        try {
+            if (this.clientChannel != null && !this.clientChannel.isClosed()) {
+                this.clientChannel.close(); // La chiusura del socket sblocca e fa fallire inputStream.readInt()
+            }
+        } catch (IOException ignored) {}
     }
 }
