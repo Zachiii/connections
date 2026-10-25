@@ -4,46 +4,67 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class ServerMain {
     static void main(String[] args) {
-        boolean isRunning = true;
         ServerProp serverProp = new ServerProp();
-        ConcurrentHashMap<String,ClientHandler> currentUsers = new ConcurrentHashMap<>();  //HashMap degli utenti che hanno fatto il login
-        ConcurrentHashMap<String,PlayerStatus> activePlayers = new ConcurrentHashMap<>();  //HashMap degli utenti che stanno gicocando
-        ConcurrentHashMap<String, User> registeredUsers = new ConcurrentHashMap<>();       //HashMap generale degli utenti che hanno fatto il register
-        //Mando timeRemaining ad un thread che si occuperà di far scorrere il tempo e di avvisare il server quando la partita sarà terminata
-        int timeRemaining = serverProp.getMatchTime();
+        //HashMap generale degli utenti che hanno fatto la registrazione
+        ConcurrentHashMap<String, User> registeredUsers = UserManager.loadUsers();
+        //HashMap degli utenti che hanno fatto il login
+        ConcurrentHashMap<String,ClientHandler> currentUsers = new ConcurrentHashMap<>();
+        //HashMap degli utenti che stanno giocando
+        ConcurrentHashMap<String,PlayerStatus> activePlayers = new ConcurrentHashMap<>();
+        //Mando matchDurationSeconds ad un thread che si occuperà di far scorrere il tempo e di avvisare il server quando la partita sarà terminata
+        Long matchDurationSeconds = serverProp.getMatchTime();
         int gameID = serverProp.getGameID();
-        GameManager gameManager = new GameManager(currentUsers,activePlayers,timeRemaining,gameID,isRunning);
-        Thread timerThread = new Thread(gameManager);  //Faccio partire il timer
+
+        //AVVIO GameManager
+        GameManager gameManager = new GameManager(currentUsers,activePlayers, matchDurationSeconds,gameID,true);
+        Thread timerThread = new Thread(gameManager);
         timerThread.start();
-        connectionStart(serverProp,registeredUsers,currentUsers,activePlayers,gameManager, isRunning);  //DEBUG: Meglio metterlo su un thread a parte?
+
+        connectionStart(serverProp, registeredUsers, currentUsers, activePlayers, gameManager, timerThread);
     }
     //creazione connesione
     public static void connectionStart(ServerProp serverProp,
                                        ConcurrentHashMap<String, User> registeredUsers,
                                        ConcurrentHashMap<String, ClientHandler> currentUsers,
-                                       ConcurrentHashMap<String,PlayerStatus> activePlayers,
+                                       ConcurrentHashMap<String, PlayerStatus> activePlayers,
                                        GameManager gameManager,
-                                       boolean isRunning)   {
+                                       Thread timerThread) {
         int port = serverProp.getPort();
         InetAddress inetAddress = serverProp.getHost();
-        //creazione socket
-        try(ServerSocket serverSocket = new ServerSocket(port,10,inetAddress);){
+
+        ExecutorService pool = Executors.newCachedThreadPool();
+
+        try (ServerSocket serverSocket = new ServerSocket(port, 10, inetAddress)) {
             System.out.println("DEBUG: Server in ascolto su questo indirizzo: " + serverSocket.getLocalSocketAddress());
-            try(ExecutorService pool = Executors.newCachedThreadPool()){
-                while(isRunning){
+
+            // AVVIO DEL THREAD DI SPEGNIMENTO DEDICATO
+            CloseServer closeServerTask = new CloseServer(serverSocket, pool, gameManager, timerThread, registeredUsers);
+            Thread closeThread = new Thread(closeServerTask, "CloseServer-Thread");
+            closeThread.start();
+
+            //AVVIO SOCKET ASCOLTO CLIENT
+            while (!serverSocket.isClosed()) {
+                try {
                     Socket clientSocket = serverSocket.accept();
                     System.out.println("DEBUG: Connessione da: " + clientSocket.getRemoteSocketAddress());
-                    pool.execute(new ClientHandler(clientSocket,registeredUsers,currentUsers,activePlayers,gameManager));
+                    pool.execute(new ClientHandler(clientSocket, registeredUsers, currentUsers, activePlayers, gameManager));
+                } catch (SocketException e) {
+                    // La ServerSocket è stata chiusa da CloseServer: uscita normale dal loop
+                    System.out.println("DEBUG: ServerSocket chiusa, terminazione ciclo di accept.");
+                    break;
                 }
             }
         } catch (IOException e) {
             System.out.println("DEBUG: Errore in ServerMain: " + e.getMessage());
+        } finally {
+            pool.shutdown();
         }
     }
 }

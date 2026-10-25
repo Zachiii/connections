@@ -34,9 +34,8 @@ public class ServerProp {
     public int getPort() {
         return Integer.parseInt(port);
     }
-    public int getMatchTime() {
-        return Integer.parseInt(matchTime);
+    public Long getMatchTime() {
+        return Long.parseLong(matchTime);
     }
-    public int getGameID () {
-        return Integer.parseInt(gameID);}
+    public int getGameID () {return Integer.parseInt(gameID);}
 }

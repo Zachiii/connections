@@ -1,0 +1,24 @@
+{
+  "fra03": {
+    "username": "fra03",
+    "password": "ditomozzato",
+    "gamesWon": 0,
+    "gamesLost": 0,
+    "points": 4,
+    "puzzlesCompleted": 1,
+    "winRate": 0,
+    "lossRate": 0,
+    "currentStreak": 0,
+    "maxStreak": 0,
+    "perfectPuzzles": 0,
+    "playerHistory": {
+      "0": {
+        "gameId": 0,
+        "score": 4,
+        "mistakes": 2,
+        "correctGroups": 2,
+        "won": 0
+      }
+    }
+  }
+}

@@ -14,7 +14,13 @@ public class ClientProp {
     private String clientPort;
     public String matchTime;
     public ClientProp() {
-        try (FileReader reader = new FileReader( new File("src/client/ClientConfig.properties"))){
+        File configFile = new File("ClientConfig.properties");
+        // Se non lo trova qui (es. quando lanci da dentro l'IDE), cerca in src/client/
+        if (!configFile.exists()) {
+            configFile = new File("src/client/ClientConfig.properties");
+        }
+
+        try (FileReader reader = new FileReader(configFile)) {
             Properties prop = new Properties();
             prop.load(reader);
             this.host = prop.getProperty("host");

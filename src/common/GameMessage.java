@@ -3,9 +3,9 @@ package common;
 import java.util.List;
 
 public class GameMessage extends Message{
-    private int gameID;
+    private String gameID;
     public GameMessage(String operation, String gameID){
         super(operation);
-        this.gameID = Integer.parseInt(gameID);
+        this.gameID = gameID;
     }
 }

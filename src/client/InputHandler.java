@@ -97,7 +97,7 @@ public class InputHandler {
                     break;
                 }
                 case "requestGameInfo": {
-                    System.out.print("Specificare il gameID: ");
+                    System.out.print("Se vuoi informazioni sulla partita corrente scrivi current sennò scrivi l'ID della partita che ti interessa: ");
                     String gameID = scanner.nextLine().trim();
                     GameMessage message = new GameMessage(operation, gameID);
                     new SendMessage(this.channel,message);
@@ -133,13 +133,14 @@ public class InputHandler {
                             " - Scrivere register per registrarsi\n" +
                             " - Scrivere login per fare il login\n" +
                             " - Scrivere logout per fare il logout\n" +
-                            " - Scrivere submitProposal per creare una proposta di gioco\n" +
-                            " - Scrivere requestGameInfo per ricevere aggiornamenti sulla partita in corso\n" +
-                            " - Scrivere requestGameStat per ricevere\n" +
-                            " - Scrivere requestLeaderboard per ricevere una leaderboard personalizzata dei giocatori\n");
+                            " - Scrivere updateCredentials per modificare username o password\n" +
+                            " - Scrivere submitProposal per inviare una proposta di gioco (4 parole)\n" +
+                            " - Scrivere requestGameInfo per ricevere lo stato e le parole della partita in corso\n" +
+                            " - Scrivere requestGameStat per ricevere le statistiche di una partita (in corso o conclusa per ID) (Da implementare)\n" +
+                            " - Scrivere requestPlayerStats per consultare le proprie statistiche storiche di gioco (Da implementare)\n" +
+                            " - Scrivere requestLeaderboard per ricevere la classifica globale, la top-K o la propria posizione (Da implementare)\n");
                     break;
                 }
-
                 default: {
                     System.out.println("Comando non riconosciuto");
                     break;

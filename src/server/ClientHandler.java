@@ -68,7 +68,8 @@ public class ClientHandler implements Runnable {
                         } else {
                             // 200: Registrazione completata
                             registeredUsers.put(username, new User(username, psw));
-                            System.out.println("DEBUG: Utente " + username + " registrato");
+                            UserManager.saveUsers(registeredUsers);
+                            System.out.println("DEBUG: Utente " + username + " registrato e salvato");
                             ResponseMessage response = new ResponseMessage("registerResponse", "200", "Utente registrato");
                             new SendTCPResponse(response, outputStream);
                         }
@@ -158,7 +159,7 @@ public class ClientHandler implements Runnable {
                         if (currentUsers.containsKey(username)) {
                             ResponseMessage response = new ResponseMessage("loginResponse", "409", "Utente già loggato");
                             new SendTCPResponse(response, outputStream);
-                            System.out.println("DEBUG: Login già fatto");
+                            System.out.println("DEBUG: Login già fatto: " + this.username);
                             break;
                         }
 
@@ -187,17 +188,20 @@ public class ClientHandler implements Runnable {
                                 this.playerStatus.setWordsLeft(currentGame.getShuffledWords());
                                 this.playerStatus.setGroupWords(currentGame.getGroupWords());
                             }
+                            System.out.println("DEBUG: Login: " + this.username);
                             this.activePlayers.put(username, this.playerStatus);
                         }
 
-                        ResponseMessage response = new ResponseMessage("loginResponse", "200", "Utente loggato");
+                        GameInfoResponse response = new GameInfoResponse("loginResponse", "200", "Utente loggato");
+                        response.setWon(this.playerStatus.isWon());
+                        response.setWordsLeft(this.playerStatus.getWordsLeft());
                         new SendTCPResponse(response, outputStream);
                         System.out.println("DEBUG: Login effettuato");
                         break;
                     }
 
                     case "logout": {
-                        System.out.println("DEBUG: Logout");
+                        System.out.println("DEBUG: Logout: " + this.username);
                         if (this.playerStatus != null) this.playerStatus.setOnline(false);
                         if (this.username != null) currentUsers.remove(this.username, this);
 
@@ -233,7 +237,7 @@ public class ClientHandler implements Runnable {
                             ResponseMessage response = new ResponseMessage(
                                     "submitProposalResponse",
                                     "422",
-                                    "Proposta errata: combinazione non valida. Vite rimaste: " + this.playerStatus.getLivesLeft()
+                                    "Proposta errata: combinazione non valida. Vite rimaste: " + (4 - this.playerStatus.getMistakes())
                             );
                             new SendTCPResponse(response, outputStream);
                             break;
@@ -278,10 +282,21 @@ public class ClientHandler implements Runnable {
                             new SendTCPResponse(response, outputStream);
                             break;
                         }
-                        // 200: Invio stato della partita corrente
-                        ResponseMessage response = new ResponseMessage("requestGameInfoResponse", "200", "Informazioni partita recuperate");
-                        response.setWordsLeft(this.playerStatus.getWordsLeft());
-                        response.setGamePoints(this.playerStatus.getScore());
+                        String askedGameID = messageJson.has("gameID") ? messageJson.get("gameID").getAsString() : "";
+                        // 400: Non ha scritto il gameID
+                        if(askedGameID.equals("")) {
+                            ResponseMessage response = new ResponseMessage("requestGameInfoResponse", "400", "Devi scrivere l'ID di una partita");
+                            new SendTCPResponse(response, outputStream);
+                            break;
+                        }
+                        // 404: Ha scritto un gameID non esistente
+                        if(!askedGameID.equals("current") && (Integer.parseInt(askedGameID) > this.gameManager.getGameID())) {
+                            ResponseMessage response = new ResponseMessage("requestGameInfoResponse", "404", "Questo ID non esiste");
+                            new SendTCPResponse(response, outputStream);
+                            break;
+                        }
+                        // 200: Invio stato della partita
+                        GameInfoResponse response = createGameInfoResponse(askedGameID);
                         new SendTCPResponse(response, outputStream);
                         break;
                     }
@@ -290,10 +305,6 @@ public class ClientHandler implements Runnable {
                         // 401 se non autenticato
                         if (this.username == null || !currentUsers.containsKey(this.username)) {
                             ResponseMessage response = new ResponseMessage(operation + "Response", "401", "Accesso non autorizzato");
-                            response.setWordsLeft(this.playerStatus.getWordsLeft());
-                            response.setListWordsGuessed(this.playerStatus.getListWordsGuessed());
-                            response.setMistakes(4 - this.playerStatus.getLivesLeft());
-                            response.setGamePoints(this.playerStatus.getScore());
                             new SendTCPResponse(response, outputStream);
                             break;
                         }
@@ -359,16 +370,48 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    private GameInfoResponse createGameInfoResponse(String askedGameID) {
+        GameInfoResponse response = new GameInfoResponse("requestGameInfoResponse", "200", "Informazioni partita recuperate");
+        int currentGameID = this.gameManager.getGameID();
+        if(askedGameID.equals("current")) {
+            response.setGameID(this.gameManager.getGameID());
+            response.setWon(this.playerStatus.isWon());
+            response.setTimeLeft(this.gameManager.getRemainingTimeSeconds());
+            response.setPoints(this.playerStatus.getScore());
+            response.setTimeLeft(this.gameManager.getRemainingTimeSeconds());
+            response.setWordsLeft(this.playerStatus.getWordsLeft());
+            response.setMistakes(this.playerStatus.getMistakes());
+            response.setWordsGuessed(this.playerStatus.getWordsGuessed());
+            return response;
+
+        }
+        int gameID = Integer.parseInt(askedGameID);
+        UserMatchResult matchResult = registeredUsers.get(this.username).getMatchResult(gameID);
+        response.setGameID(this.gameManager.getGameID());
+        response.setWon(matchResult.isWon());
+        response.setPoints(matchResult.getScore());
+        response.setMistakes(matchResult.getMistakes());
+        response.setNumberCorrectGuesses(matchResult.getCorrectGroups());
+        return response;
+    }
+
     //AGGIUNGERE LA POSSIBILITà PER L'UTENTE DI SCEGLIERE SE RIMANERE LOGGATO O MENO
     public void MatchEnd() {
         this.playerStatus.setScore();
         this.registeredUsers.get(username).setPoints(this.playerStatus.getScore());
-        if (this.playerStatus != null) this.playerStatus.setOnline(false);
+        UserMatchResult matchResult = new UserMatchResult(
+                gameManager.getGameID(),
+                playerStatus.getScore(),
+                playerStatus.getMistakes(),
+                playerStatus.getWordsGuessed().size(),
+                playerStatus.isWon()
+        );
+        registeredUsers.get(this.username).addMatchResult(matchResult);
+        UserManager.saveUsers(registeredUsers);
         // Notifiche UDP di fine partita con codice 500
         Message endGameMessage = new Message("EndGame");
         this.sendUDPMessage(endGameMessage);
         ResponseMessage endGameStats = new ResponseMessage("EndGameStats", "500", "Partita finita");
-        endGameStats.setGamePoints(this.playerStatus.getScore());
         this.sendUDPMessage(endGameStats);
     }
 

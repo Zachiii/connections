@@ -1,5 +1,9 @@
 package server;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 public class User {
     //Dati dell'utente generali
     private String username;
@@ -13,6 +17,8 @@ public class User {
     private int currentStreak;
     private int maxStreak;
     private int perfectPuzzles;
+    //Storico delle partite: chiave = gameID
+    private ConcurrentHashMap<Integer,UserMatchResult> playerHistory;
     public User(String username, String password) {
         this.username = username;
         this.password = password;
@@ -24,7 +30,23 @@ public class User {
         this.currentStreak = 0;
         this.maxStreak = 0;
         this.perfectPuzzles = 0;
+        this.playerHistory = new ConcurrentHashMap<>();
     }
+
+    // --------- METODI PER LA GESTIONE DELLA CRONOLOGIA DELLE PARTITE ---------
+    public  void addMatchResult(UserMatchResult result) {
+        if (result != null) {
+            playerHistory.put(result.getGameId(), result);
+        }
+    }
+    public UserMatchResult getMatchResult(int gameId) {
+        return playerHistory.get(gameId);
+    }
+    public ConcurrentHashMap<Integer, UserMatchResult> getMatchHistory() {
+        return playerHistory;
+    }
+
+    // --------- METODI GENERALI PER LA GESTIONE DELL'UTENTE ---------
     public String getUsername() {
         return username;
     }
@@ -39,8 +61,8 @@ public class User {
         this.puzzlesCompleted++;
         this.points += points;
         if(points == 18) perfectPuzzles++;
-        this.winRate = this.puzzlesCompleted / this.gamesWon;
-        this.lossRate = this.winRate / this.gamesLost;
+        if(this.gamesWon != 0)this.winRate = this.puzzlesCompleted / this.gamesWon;
+        if(this.gamesLost != 0)this.lossRate = this.winRate / this.gamesLost;
     }
     public void addStreak(){
         this.currentStreak++;
@@ -49,7 +71,7 @@ public class User {
     }
     public void resetStreak(){
         this.currentStreak = 0;
-        this.gamesWon++;
+        this.gamesLost++;
     }
     public int getPoints() {return this.points;}
 }

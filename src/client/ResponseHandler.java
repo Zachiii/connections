@@ -1,7 +1,10 @@
 package client;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import common.GameInfoResponse;
+import common.ResponseMessage;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -26,8 +29,24 @@ public class ResponseHandler {
                 }
             }
             String messageString = new String(byteMessage.array(), StandardCharsets.UTF_8);
-            JsonObject messageJson = JsonParser.parseString(messageString).getAsJsonObject();
-            System.out.println("Il server ha risposto con: " + messageJson.get("response").getAsString());
+            Gson gson = new Gson();
+            ResponseMessage responseMessage = gson.fromJson(messageString, ResponseMessage.class);
+            System.out.println("Il server ha risposto con: " + responseMessage.getResponse());
+            switch(responseMessage.getOperation()){
+                case "loginResponse": {
+                    GameInfoResponse response = gson.fromJson(messageString, GameInfoResponse.class);
+                    if(responseMessage.getCode().equals("200")){
+                        response.printWordsLeft();
+                    }
+                    break;
+                }
+                case "requestGameInfoResponse": {
+                    GameInfoResponse response = gson.fromJson(messageString, GameInfoResponse.class);
+                    if(responseMessage.getCode().equals("200")){
+                        response.printGameInfo();
+                    }
+                }
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

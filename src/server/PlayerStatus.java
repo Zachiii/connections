@@ -1,7 +1,6 @@
 package server;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class PlayerStatus {
@@ -9,22 +8,25 @@ public class PlayerStatus {
     private String username;
     private Boolean online;
     private Boolean gameEnded;
+    private int won;
     private int score;
-    private int livesLeft;
+    private int mistakes;
     private int correctMatches;
     private int groupsLeft;
     private ArrayList<String> wordsLeft;
-    private ArrayList<String> listWordsGuessed;
+    private ConcurrentHashMap<String, ArrayList<String>> wordsGuessed;
     private ConcurrentHashMap<String, ArrayList<String>> groupWords;
     public PlayerStatus(String username, Boolean online) {
         this.username = username;
         this.online = online;
         this.gameEnded = false;
+        this.won = 0;
         this.score = 0;
-        this.livesLeft = 4;
+        this.mistakes = 0;
         this.correctMatches = 0;
         this.groupsLeft = 4;
         this.wordsLeft = new ArrayList<>();
+        this.wordsGuessed = new ConcurrentHashMap<>();
     }
 
     public void setOnline(Boolean online) {
@@ -32,6 +34,7 @@ public class PlayerStatus {
     }
     public boolean isOnline() {return this.online;}
     public boolean isGameEnded() {return this.gameEnded;}
+    public int isWon() {return this.won;}
 
     //Setta la lista di parole da indovinare
     public void setWordsLeft(ArrayList<String> wordsLeft) {
@@ -45,8 +48,7 @@ public class PlayerStatus {
         else if (this.correctMatches == 2) bonus = 12;
         else if (this.correctMatches >= 3) bonus = 18;
 
-        int erroriFatti = 4 - this.livesLeft;
-        int penalita = erroriFatti * 4;
+        int penalita = mistakes * 4;
 
         this.score = bonus - penalita;
     }
@@ -57,16 +59,16 @@ public class PlayerStatus {
 
     public int getScore() {return this.score;}
 
-    public int getLivesLeft() {return this.livesLeft;}
+    public int getMistakes() {return this.mistakes;}
 
-    public ArrayList<String> getListWordsGuessed() {return this.listWordsGuessed;}
+    public ConcurrentHashMap<String,ArrayList<String>> getWordsGuessed() {return this.wordsGuessed;}
 
     public ArrayList<String> getWordsLeft() {
         return this.wordsLeft;
     }
 
     //Controllo delle proposte fatte dall'utente
-    public String removeWordsGuessed(List<String> wordsGuessed) {
+    public String removeWordsGuessed(ArrayList<String> wordsGuessed) {
         System.out.println("DEBUG: wordsGuessed: " + wordsGuessed);
         if (wordsGuessed == null || wordsGuessed.size() != 4 || !this.wordsLeft.containsAll(wordsGuessed)) {
             return "MALFORMED"; // Proposta non valida: non toglie vite né punti
@@ -75,18 +77,29 @@ public class PlayerStatus {
             if(groupWords.get(group).containsAll(wordsGuessed)) {
                 //risposta valida e corretta
                 this.wordsLeft.removeAll(wordsGuessed);
-                this.listWordsGuessed.addAll(wordsGuessed);
+                this.wordsGuessed.put(group,wordsGuessed);
                 this.correctMatches++;
                 this.groupsLeft--;
                 this.setScore();
-                if(this.groupsLeft == 1) return "WIN";
+                if(this.groupsLeft == 1) {
+                    this.won = 1;
+                    this.wordsGuessed.put(group,wordsLeft);
+                    this.groupsLeft--;
+                    this.wordsLeft.clear();
+                    this.gameEnded = true;
+                    return "WIN";
+                }
                 return group;
             }
         }
         //risposta valida ma errata
-        this.livesLeft--;
+        this.mistakes++;
         this.setScore();
-        if(this.livesLeft == 0) return "ENDGAME";
+        if(this.mistakes == 4) {
+            this.won = -1;
+            this.gameEnded = true;
+            return "ENDGAME";
+        }
         return null;
     }
 }

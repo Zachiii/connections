@@ -6,4 +6,5 @@ public class Message {
     public Message(String operation) {
         this.operation = operation;
     }
+    public String getOperation() {return this.operation;}
 }
