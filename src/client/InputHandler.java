@@ -128,8 +128,8 @@ public class InputHandler {
                             " - Scrivere logout per fare il logout\n" +
                             " - Scrivere updateCredentials per modificare username o password\n" +
                             " - Scrivere submitProposal per inviare una proposta di gioco (4 parole)\n" +
-                            " - Scrivere requestGameInfo per ricevere lo stato e le parole della partita in corso\n" +
-                            " - Scrivere requestGameStat per ricevere le statistiche di una partita (in corso o conclusa per ID) (Da implementare)\n" +
+                            " - Scrivere requestGameInfo per ricevere lo stato e le parole di una partita (in corso o conclusa per ID)\n" +
+                            " - Scrivere requestGameStat per ricevere le statistiche di una partita (in corso o conclusa per ID)\n" +
                             " - Scrivere requestPlayerStats per consultare le proprie statistiche storiche di gioco (Da implementare)\n" +
                             " - Scrivere requestLeaderboard per ricevere la classifica globale, la top-K o la propria posizione (Da implementare)\n");
                     break;
