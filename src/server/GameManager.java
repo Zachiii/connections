@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class GameManager implements Runnable {
     ConcurrentHashMap<String,ClientHandler> currentUsers;
     ConcurrentHashMap<String,PlayerStatus> activePlayers;
+    ConcurrentHashMap<String,GameStats> gameStats;
     private final long matchDurationSeconds;
     private volatile long startTimeMillis;
     private int gameID;
@@ -16,6 +17,7 @@ public class GameManager implements Runnable {
     public GameManager(
             ConcurrentHashMap<String,ClientHandler> currentUsers,
             ConcurrentHashMap<String,PlayerStatus> activePlayers,
+            ConcurrentHashMap<String,GameStats> gameStats,
             ServerProp serverProp,
             Long matchDurationSeconds,
             int gameID,
@@ -26,6 +28,7 @@ public class GameManager implements Runnable {
         this.isRunning = isRunning;
         this.activePlayers = activePlayers;
         this.serverProp = serverProp;
+        this.gameStats = gameStats;
     }
 
     public GameSupport getCurrentGame() {
@@ -39,6 +42,8 @@ public class GameManager implements Runnable {
         System.out.println("DEBUG: Timer partito");
         while (isRunning && gameID < 900){
             //inizia partita
+            GameStats currentGame = new GameStats(this);
+            this.gameStats.put(String.valueOf(gameID),currentGame);
             WordReader wordReader = new WordReader();
             this.currentGame = WordReader.getGame(gameID);
             System.out.println("DEBUG: Partita caricata: " + this.currentGame.getGroupWords());
@@ -60,6 +65,7 @@ public class GameManager implements Runnable {
             }
             if (!isRunning) break;
             //manda segnale UDP fine partita
+            GameStatsManager.saveGameStats(this.gameStats);
             System.out.println("DEBUG: Tempo partita: " + gameID + " finito");
             for(ClientHandler clientHandler : currentUsers.values()){
                 clientHandler.MatchEnd();

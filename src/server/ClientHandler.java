@@ -15,6 +15,7 @@ public class ClientHandler implements Runnable {
     private final ConcurrentHashMap<String, User> registeredUsers;
     private final ConcurrentHashMap<String, ClientHandler> currentUsers;
     private ConcurrentHashMap<String, PlayerStatus> activePlayers;
+    private ConcurrentHashMap<String, GameStats> gameStats;
     private PlayerStatus playerStatus = null;
     private String username;
     private int clientUDPport;
@@ -25,11 +26,13 @@ public class ClientHandler implements Runnable {
                          ConcurrentHashMap<String, User> registeredUsers,
                          ConcurrentHashMap<String, ClientHandler> currentUsers,
                          ConcurrentHashMap<String, PlayerStatus> activePlayers,
+                         ConcurrentHashMap<String, GameStats> gameStats,
                          GameManager gameManager) {
         this.clientChannel = clientChannel;
         this.registeredUsers = registeredUsers;
         this.currentUsers = currentUsers;
         this.activePlayers = activePlayers;
+        this.gameStats = gameStats;
         this.gameManager = gameManager;
     }
 
@@ -182,6 +185,7 @@ public class ClientHandler implements Runnable {
                             System.out.println("DEBUG: Utente " + username + " rientrato. Parole rimaste: " + this.playerStatus.getWordsLeft().size());
                         } else {
                             // Prima connessione in questo round
+                            this.gameStats.get(String.valueOf(gameManager.getGameID())).setNumberOfPlayers();
                             this.playerStatus = new PlayerStatus(username, true);
                             GameSupport currentGame = this.gameManager.getCurrentGame();
                             if (currentGame != null) {
@@ -274,54 +278,24 @@ public class ClientHandler implements Runnable {
                         new SendTCPResponse(response, outputStream);
                         break;
                     }
-
                     case "requestGameInfo": {
-                        // 401: Non autenticato
-                        if (this.playerStatus == null || !this.playerStatus.isOnline()) {
-                            ResponseMessage response = new ResponseMessage("requestGameInfoResponse", "401", "Utente non loggato");
-                            new SendTCPResponse(response, outputStream);
-                            break;
-                        }
-                        String askedGameID = messageJson.has("gameID") ? messageJson.get("gameID").getAsString() : "";
-                        // 400: Non ha scritto il gameID
-                        if(askedGameID.equals("")) {
-                            ResponseMessage response = new ResponseMessage("requestGameInfoResponse", "400", "Devi scrivere l'ID di una partita");
-                            new SendTCPResponse(response, outputStream);
-                            break;
-                        }
-                        // 404: Ha scritto un gameID non esistente
-                        if(!askedGameID.equals("current") && (Integer.parseInt(askedGameID) > this.gameManager.getGameID())) {
-                            ResponseMessage response = new ResponseMessage("requestGameInfoResponse", "404", "Questo ID non esiste");
-                            new SendTCPResponse(response, outputStream);
-                            break;
-                        }
-                        // 200: Invio stato della partita
-                        GameInfoResponse response = createGameInfoResponse(askedGameID);
+                        int validatedId = validateGameRequest(messageJson, "requestGameInfoResponse", outputStream);
+                        if (validatedId == -2) break; // Controllo fallito: errore già inviato
+
+                        GameInfoResponse response = createGameInfoResponse(validatedId);
                         new SendTCPResponse(response, outputStream);
                         break;
                     }
-
                     case "requestGameStats": {
-                        // 401 se non autenticato
-                        if (this.username == null || !currentUsers.containsKey(this.username)) {
-                            ResponseMessage response = new ResponseMessage(operation + "Response", "401", "Accesso non autorizzato");
-                            new SendTCPResponse(response, outputStream);
-                            break;
-                        }
-                        // 200 quando restituisci i dati richiesti
-                        String gameID = messageJson.has("gameID") ? messageJson.get("gameID").getAsString() : "";
-                        if(gameID.equals("current")) {
-                            ResponseMessage response = new ResponseMessage(operation + "Response", "200", "Dati recuperati con successo");
-                            new SendTCPResponse(response, outputStream);
-                            break;
-                        } else if (!gameID.isEmpty()) {
-                            ResponseMessage response = new ResponseMessage(operation + "Response", "200", "Dati recuperati con successo");
-                            new SendTCPResponse(response, outputStream);
-                            break;
-                        }
+                        int validatedId = validateGameRequest(messageJson, "requestGameStatsResponse", outputStream);
+                        if (validatedId == -2) break; // Controllo fallito: errore già inviato
+
+                        GameStatsResponse response = createGameStatsResponse(validatedId);
+                        new SendTCPResponse(response, outputStream);
                         break;
                     }
                     case "requestLeaderboard":{
+                        /*
                         // 401 se non autenticato
                         if (this.username == null || !currentUsers.containsKey(this.username)) {
                             ResponseMessage response = new ResponseMessage(operation + "Response", "401", "Accesso non autorizzato");
@@ -339,6 +313,7 @@ public class ClientHandler implements Runnable {
                             new SendTCPResponse(response, outputStream);
                             break;
                         }
+                        */
                         break;
                     }
                     case "requestPlayerStats": {
@@ -370,24 +345,29 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    private GameInfoResponse createGameInfoResponse(String askedGameID) {
-        GameInfoResponse response = new GameInfoResponse("requestGameInfoResponse", "200", "Informazioni partita recuperate");
-        int currentGameID = this.gameManager.getGameID();
-        if(askedGameID.equals("current")) {
+    private GameInfoResponse createGameInfoResponse(int targetId) {
+        if (targetId == -1) {
+            // Partita corrente
+            GameInfoResponse response = new GameInfoResponse("requestGameInfoResponse", "200", "Informazioni partita recuperate");
             response.setGameID(this.gameManager.getGameID());
-            response.setWon(this.playerStatus.isWon());
+            if (this.playerStatus != null) {
+                response.setWon(this.playerStatus.isWon());
+                response.setPoints(this.playerStatus.getScore());
+                response.setMistakes(this.playerStatus.getMistakes());
+                response.setWordsLeft(this.playerStatus.getWordsLeft());
+                response.setWordsGuessed(this.playerStatus.getWordsGuessed());
+            }
             response.setTimeLeft(this.gameManager.getRemainingTimeSeconds());
-            response.setPoints(this.playerStatus.getScore());
-            response.setTimeLeft(this.gameManager.getRemainingTimeSeconds());
-            response.setWordsLeft(this.playerStatus.getWordsLeft());
-            response.setMistakes(this.playerStatus.getMistakes());
-            response.setWordsGuessed(this.playerStatus.getWordsGuessed());
             return response;
-
         }
-        int gameID = Integer.parseInt(askedGameID);
-        UserMatchResult matchResult = registeredUsers.get(this.username).getMatchResult(gameID);
-        response.setGameID(this.gameManager.getGameID());
+        // Partita conclusa: recupero dallo storico personale dell'utente
+        User currentUser = this.registeredUsers.get(this.username);
+        UserMatchResult matchResult = (currentUser != null) ? currentUser.getMatchResult(targetId) : null;
+        if (matchResult == null) {
+            return new GameInfoResponse("requestGameInfoResponse", "404", "Nessun dato trovato per questo giocatore nella partita specificata");
+        }
+        GameInfoResponse response = new GameInfoResponse("requestGameInfoResponse", "200", "Informazioni partita recuperate");
+        response.setGameID(targetId);
         response.setWon(matchResult.isWon());
         response.setPoints(matchResult.getScore());
         response.setMistakes(matchResult.getMistakes());
@@ -395,19 +375,84 @@ public class ClientHandler implements Runnable {
         return response;
     }
 
+    private GameStatsResponse createGameStatsResponse(int targetId) {
+        boolean isCurrent = (targetId == -1);
+        int realGameId = isCurrent ? this.gameManager.getGameID() : targetId;
+        GameStats stats = this.gameStats.get(String.valueOf(realGameId));
+        if (stats == null) {
+            return new GameStatsResponse("requestGameStatsResponse", "404", "Statistiche non trovate per la partita richiesta");
+        }
+        GameStatsResponse response = new GameStatsResponse("requestGameStatsResponse", "200", "Informazioni partita recuperate");
+        response.setGameID(realGameId);
+        response.setGameEnded(!isCurrent);
+        response.setGamesWon(stats.getGamesWon());
+        response.setGamesLost(stats.getGamesLost());
+        response.setNumberOfPlayers(stats.getNumberOfPlayers());
+        if (isCurrent) {
+            response.setTimeLeft(this.gameManager.getRemainingTimeSeconds());
+        } else {
+            int players = stats.getNumberOfPlayers();
+            response.setAveragePoints(players > 0 ? ((double) stats.getTotalPoints() / players) : 0.0);
+        }
+        return response;
+    }
+
+    private int validateGameRequest(JsonObject messageJson, String responseOp, DataOutputStream outputStream) {
+        // 401: Non autenticato
+        if (this.username == null || !this.currentUsers.containsKey(this.username)) {
+            new SendTCPResponse(new ResponseMessage(responseOp, "401", "Accesso non autorizzato"), outputStream);
+            return -2;
+        }
+        String askedGameID = messageJson.has("gameID") ? messageJson.get("gameID").getAsString().trim() : "";
+        // 400: Parametro mancante o vuoto
+        if (askedGameID.isEmpty()) {
+            new SendTCPResponse(new ResponseMessage(responseOp, "400", "Devi specificare un ID di una partita o 'current'"), outputStream);
+            return -2;
+        }
+        // Caso partita corrente
+        if (askedGameID.equalsIgnoreCase("current")) {
+            return -1;
+        }
+        // Caso partita numerica
+        try {
+            int parsedId = Integer.parseInt(askedGameID);
+            int currentGameID = this.gameManager.getGameID();
+
+            // 404: ID negativo o riferito a una partita futura non ancora disputata
+            if (parsedId < 0 || parsedId > currentGameID) {
+                new SendTCPResponse(new ResponseMessage(responseOp, "404", "Questo ID partita non esiste o non è ancora stato giocato"), outputStream);
+                return -2;
+            }
+            return parsedId;
+        } catch (NumberFormatException e) {
+            // 400: Stringa non numerica e diversa da "current"
+            new SendTCPResponse(new ResponseMessage(responseOp, "400", "L'ID della partita deve essere un numero intero positivo o 'current'"), outputStream);
+            return -2;
+        }
+    }
+
     //AGGIUNGERE LA POSSIBILITà PER L'UTENTE DI SCEGLIERE SE RIMANERE LOGGATO O MENO
     public void MatchEnd() {
+        int gameID = this.gameManager.getGameID();
+
+        // Salvataggio statistiche utente
         this.playerStatus.setScore();
         this.registeredUsers.get(username).setPoints(this.playerStatus.getScore());
         UserMatchResult matchResult = new UserMatchResult(
-                gameManager.getGameID(),
-                playerStatus.getScore(),
-                playerStatus.getMistakes(),
-                playerStatus.getWordsGuessed().size(),
-                playerStatus.isWon()
+                gameID,
+                this.playerStatus.getScore(),
+                this.playerStatus.getMistakes(),
+                this.playerStatus.getWordsGuessed().size(),
+                this.playerStatus.isWon()
         );
         registeredUsers.get(this.username).addMatchResult(matchResult);
         UserManager.saveUsers(registeredUsers);
+
+        // Aggiornamento statistiche partita
+        this.gameStats.get(String.valueOf(gameID)).setTotalPoints(this.playerStatus.getScore());
+        if(this.playerStatus.isWon() == -1){this.gameStats.get(String.valueOf(gameID)).setGamesLost();}
+        else if(this.playerStatus.isWon() == 1){this.gameStats.get(String.valueOf(gameID)).setGamesWon();}
+
         // Notifiche UDP di fine partita con codice 500
         Message endGameMessage = new Message("EndGame");
         this.sendUDPMessage(endGameMessage);

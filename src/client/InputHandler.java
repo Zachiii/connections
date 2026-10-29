@@ -35,7 +35,7 @@ public class InputHandler {
                     System.out.println("Se non si vuole aggiornare la password o lo username premere semplicemente invio sul campo che non si vuole aggiornare");
                     System.out.print("Username vecchio: ");
                     String oldUsrname = scanner.nextLine().trim();
-                    System.out.print("Password vecchio: ");
+                    System.out.print("Password vecchia: ");
                     String oldPsw = scanner.nextLine().trim();
                     System.out.print("Username nuovo: ");
                     String newUsername = scanner.nextLine().trim();
@@ -97,16 +97,8 @@ public class InputHandler {
                     }
                     break;
                 }
-                case "requestGameInfo": {
+                case "requestGameInfo", "requestGameStats": {
                     System.out.print("Se vuoi informazioni sulla partita corrente scrivi current sennò scrivi l'ID della partita che ti interessa: ");
-                    String gameID = scanner.nextLine().trim();
-                    GameMessage message = new GameMessage(operation, gameID);
-                    new SendMessage(this.channel,message);
-                    if (!new ResponseHandler(this.channel).isSuccess()) done = true;
-                    break;
-                }
-                case "requestGameStats": {
-                    System.out.print("Specificare il gameID: ");
                     String gameID = scanner.nextLine().trim();
                     GameMessage message = new GameMessage(operation, gameID);
                     new SendMessage(this.channel,message);

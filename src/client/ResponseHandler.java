@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import common.GameInfoResponse;
+import common.GameStatsResponse;
 import common.ResponseMessage;
 
 import java.io.IOException;
@@ -57,6 +58,12 @@ public class ResponseHandler {
                     if(responseMessage.getCode().equals("200")){
                         response.printGameInfo();
                     }
+                    break;
+                }
+                case "requestGameStatsResponse": {
+                    GameStatsResponse response = gson.fromJson(messageString, GameStatsResponse.class);
+                    response.printGameStats();
+                    break;
                 }
             }
             return true;

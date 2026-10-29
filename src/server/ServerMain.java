@@ -18,22 +18,25 @@ public class ServerMain {
         ConcurrentHashMap<String,ClientHandler> currentUsers = new ConcurrentHashMap<>();
         //HashMap degli utenti che stanno giocando
         ConcurrentHashMap<String,PlayerStatus> activePlayers = new ConcurrentHashMap<>();
-        //Mando matchDurationSeconds ad un thread che si occuperà di far scorrere il tempo e di avvisare il server quando la partita sarà terminata
+        //HashMap di tutte le partite giocate
+        ConcurrentHashMap<String,GameStats>  gameStats = GameStatsManager.loadGameStats();
+        //Mando matchDurationSeconds a un thread che si occuperà di far scorrere il tempo e di avvisare il server quando la partita sarà terminata
         Long matchDurationSeconds = serverProp.getMatchTime();
         int gameID = serverProp.getGameID();
 
         //AVVIO GameManager
-        GameManager gameManager = new GameManager(currentUsers,activePlayers,serverProp,matchDurationSeconds,gameID,true);
+        GameManager gameManager = new GameManager(currentUsers,activePlayers,gameStats,serverProp,matchDurationSeconds,gameID,true);
         Thread timerThread = new Thread(gameManager);
         timerThread.start();
 
-        connectionStart(serverProp, registeredUsers, currentUsers, activePlayers, gameManager, timerThread);
+        connectionStart(serverProp, registeredUsers, currentUsers, activePlayers, gameStats, gameManager, timerThread);
     }
     //creazione connesione
     public static void connectionStart(ServerProp serverProp,
                                        ConcurrentHashMap<String, User> registeredUsers,
                                        ConcurrentHashMap<String, ClientHandler> currentUsers,
                                        ConcurrentHashMap<String, PlayerStatus> activePlayers,
+                                       ConcurrentHashMap<String,GameStats> gameStats,
                                        GameManager gameManager,
                                        Thread timerThread) {
         int port = serverProp.getPort();
@@ -45,7 +48,7 @@ public class ServerMain {
             System.out.println("DEBUG: Server in ascolto su questo indirizzo: " + serverSocket.getLocalSocketAddress());
 
             // AVVIO DEL THREAD DI SPEGNIMENTO DEDICATO
-            CloseServer closeServerTask = new CloseServer(serverSocket, pool, gameManager, timerThread, registeredUsers,currentUsers);
+            CloseServer closeServerTask = new CloseServer(serverSocket, pool, gameManager, gameStats, timerThread, registeredUsers,currentUsers);
             Thread closeThread = new Thread(closeServerTask, "CloseServer-Thread");
             closeThread.start();
 
@@ -54,7 +57,7 @@ public class ServerMain {
                 try {
                     Socket clientSocket = serverSocket.accept();
                     System.out.println("DEBUG: Connessione da: " + clientSocket.getRemoteSocketAddress());
-                    pool.execute(new ClientHandler(clientSocket, registeredUsers, currentUsers, activePlayers, gameManager));
+                    pool.execute(new ClientHandler(clientSocket, registeredUsers, currentUsers, activePlayers,gameStats, gameManager));
                 } catch (SocketException e) {
                     // La ServerSocket è stata chiusa da CloseServer: uscita normale dal loop
                     System.out.println("DEBUG: ServerSocket chiusa, terminazione ciclo di accept.");

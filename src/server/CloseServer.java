@@ -13,10 +13,12 @@ public class CloseServer implements Runnable {
     private final Thread timerThread;
     private final ConcurrentHashMap<String, User> registeredUsers;
     private final ConcurrentHashMap<String, ClientHandler> currentUsers;
+    private final ConcurrentHashMap<String, GameStats> gameStats;
 
     public CloseServer(ServerSocket serverSocket,
                        ExecutorService pool,
                        GameManager gameManager,
+                       ConcurrentHashMap<String,GameStats> gameStats,
                        Thread timerThread,
                        ConcurrentHashMap<String, User> registeredUsers,
                        ConcurrentHashMap<String, ClientHandler> currentUsers) {
@@ -26,6 +28,7 @@ public class CloseServer implements Runnable {
         this.timerThread = timerThread;
         this.registeredUsers = registeredUsers;
         this.currentUsers = currentUsers;
+        this.gameStats = gameStats;
     }
 
     @Override
@@ -55,6 +58,7 @@ public class CloseServer implements Runnable {
                 //Persistenza finale su disco
                 System.out.println("[SERVER] Salvataggio dati in corso...");
                 UserManager.saveUsers(registeredUsers);
+                GameStatsManager.saveGameStats(gameStats);
 
                 //Chiude la ServerSocket: questo sblocca immediatamente la accept()
                 try {
