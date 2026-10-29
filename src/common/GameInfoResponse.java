@@ -31,7 +31,7 @@ public class GameInfoResponse  extends ResponseMessage {
     public void printGameInfo() {
         System.out.println("Game ID: " + this.gameID);
         if(this.won == 0){
-            System.out.println("Time left: " + this.timeLeft);
+            System.out.printf("Time left: %02d:%02d (mm:ss)%n", this.timeLeft/60, this.timeLeft%60 );
             System.out.println("Words guessed: " + this.wordsGuessed);
             printWordsLeft();
         }
