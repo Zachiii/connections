@@ -25,6 +25,7 @@ Thumbs.db
 # --- File di log o temporanei ---
 *.log
 src/META-INF/MANIFEST.MF
+src/META-INF
 users.json
 codes
 # --- PDF del progetto
