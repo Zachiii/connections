@@ -31,18 +31,23 @@ public class ServerProp {
         }
         return null;
     }
-    public void updateGameID(){
-        try (FileReader reader = new FileReader( new File("src/server/ServerConfig.properties"))){
-            Properties prop = new Properties();
+    public void updateGameID() {
+        File configFile = new File("src/server/ServerConfig.properties");
+        Properties prop = new Properties();
+        try (FileReader reader = new FileReader(configFile)) {
             prop.load(reader);
-            int gameID = Integer.parseInt(prop.getProperty("gameID"));
-            gameID++;
-            prop.setProperty("gameID", Integer.toString(gameID));
-            this.gameID = gameID;
-        } catch (FileNotFoundException e) {
-            System.out.println("File not found");
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Errore nella lettura del file properties: " + e.getMessage());
+            return;
+        }
+        int gameID = Integer.parseInt(prop.getProperty("gameID", "0"));
+        gameID++;
+        prop.setProperty("gameID", Integer.toString(gameID));
+        this.gameID = gameID;
+        try (FileWriter writer = new FileWriter(configFile)) {
+            prop.store(writer, null);
+        } catch (IOException e) {
+            System.err.println("Errore nella scrittura del file properties: " + e.getMessage());
         }
     }
     public int getPort() {
