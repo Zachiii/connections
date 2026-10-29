@@ -4,7 +4,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class GameStats {
     //Statistiche per singola partita
-    private GameManager gameManager;
     private final int gameID;
     private final AtomicInteger numberOfPlayers = new AtomicInteger(0);
     private final AtomicInteger totalPoints = new AtomicInteger(0);
@@ -12,8 +11,7 @@ public class GameStats {
     private final AtomicInteger gamesLost = new AtomicInteger(0);
 
     public GameStats(GameManager gameManager) {
-        this.gameManager = gameManager;
-        this.gameID = this.gameManager.getGameID();
+        this.gameID = gameManager.getGameID();
     }
 
     public void setNumberOfPlayers() {this.numberOfPlayers.incrementAndGet();}

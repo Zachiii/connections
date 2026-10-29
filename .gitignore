@@ -26,7 +26,8 @@ Thumbs.db
 *.log
 src/META-INF/MANIFEST.MF
 src/META-INF
-users.json
+src/server/users.json
+src/server/gamestats.json
 codes
 # --- PDF del progetto
 *.pdf

@@ -55,14 +55,12 @@ public class ResponseHandler {
                 }
                 case "requestGameInfoResponse": {
                     GameInfoResponse response = gson.fromJson(messageString, GameInfoResponse.class);
-                    if(responseMessage.getCode().equals("200")){
-                        response.printGameInfo();
-                    }
+                    if(responseMessage.getCode().equals("200")){response.printGameInfo();}
                     break;
                 }
                 case "requestGameStatsResponse": {
                     GameStatsResponse response = gson.fromJson(messageString, GameStatsResponse.class);
-                    response.printGameStats();
+                    if(responseMessage.getCode().equals("200"))response.printGameStats();
                     break;
                 }
             }

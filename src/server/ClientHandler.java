@@ -289,7 +289,6 @@ public class ClientHandler implements Runnable {
                     case "requestGameStats": {
                         int validatedId = validateGameRequest(messageJson, "requestGameStatsResponse", outputStream);
                         if (validatedId == -2) break; // Controllo fallito: errore già inviato
-
                         GameStatsResponse response = createGameStatsResponse(validatedId);
                         new SendTCPResponse(response, outputStream);
                         break;
