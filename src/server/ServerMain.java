@@ -25,11 +25,11 @@ public class ServerMain {
         int gameID = serverProp.getGameID();
 
         //AVVIO GameManager
-        GameManager gameManager = new GameManager(currentUsers,activePlayers,gameStats,serverProp,matchDurationSeconds,gameID,true);
-        Thread timerThread = new Thread(gameManager);
+        GameTimeManager gameTimeManager = new GameTimeManager(currentUsers,activePlayers,gameStats,serverProp,matchDurationSeconds,gameID,true);
+        Thread timerThread = new Thread(gameTimeManager);
         timerThread.start();
 
-        connectionStart(serverProp, registeredUsers, currentUsers, activePlayers, gameStats, gameManager, timerThread);
+        connectionStart(serverProp, registeredUsers, currentUsers, activePlayers, gameStats, gameTimeManager, timerThread);
     }
     //creazione connesione
     public static void connectionStart(ServerProp serverProp,
@@ -37,7 +37,7 @@ public class ServerMain {
                                        ConcurrentHashMap<String, ClientHandler> currentUsers,
                                        ConcurrentHashMap<String, PlayerStatus> activePlayers,
                                        ConcurrentHashMap<String,GameStats> gameStats,
-                                       GameManager gameManager,
+                                       GameTimeManager gameTimeManager,
                                        Thread timerThread) {
         int port = serverProp.getPort();
         InetAddress inetAddress = serverProp.getHost();
@@ -48,7 +48,7 @@ public class ServerMain {
             System.out.println("DEBUG: Server in ascolto su questo indirizzo: " + serverSocket.getLocalSocketAddress());
 
             // AVVIO DEL THREAD DI SPEGNIMENTO DEDICATO
-            CloseServer closeServerTask = new CloseServer(serverSocket, pool, gameManager, gameStats, timerThread, registeredUsers,currentUsers);
+            CloseServer closeServerTask = new CloseServer(serverSocket, pool, gameTimeManager, gameStats, timerThread, registeredUsers,currentUsers);
             Thread closeThread = new Thread(closeServerTask, "CloseServer-Thread");
             closeThread.start();
 
@@ -57,7 +57,7 @@ public class ServerMain {
                 try {
                     Socket clientSocket = serverSocket.accept();
                     System.out.println("DEBUG: Connessione da: " + clientSocket.getRemoteSocketAddress());
-                    pool.execute(new ClientHandler(clientSocket, registeredUsers, currentUsers, activePlayers,gameStats, gameManager));
+                    pool.execute(new ClientHandler(clientSocket, registeredUsers, currentUsers, activePlayers,gameStats, gameTimeManager));
                 } catch (SocketException e) {
                     // La ServerSocket è stata chiusa da CloseServer: uscita normale dal loop
                     System.out.println("DEBUG: ServerSocket chiusa, terminazione ciclo di accept.");

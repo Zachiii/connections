@@ -1,6 +1,6 @@
 package server;
 
-// Mi da i risultati di una vecchia partita giocata dall'utente
+// Salvata come HashMap in User, serve per avere uno storico dei match dell'utente
 public class UserMatchResult {
     private int gameId;
     private int score;

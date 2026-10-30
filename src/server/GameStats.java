@@ -10,8 +10,8 @@ public class GameStats {
     private final AtomicInteger gamesWon = new AtomicInteger(0);
     private final AtomicInteger gamesLost = new AtomicInteger(0);
 
-    public GameStats(GameManager gameManager) {
-        this.gameID = gameManager.getGameID();
+    public GameStats(GameTimeManager gameTimeManager) {
+        this.gameID = gameTimeManager.getGameID();
     }
 
     public void setNumberOfPlayers() {this.numberOfPlayers.incrementAndGet();}

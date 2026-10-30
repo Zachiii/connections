@@ -12,4 +12,6 @@ public class RegisterMessage extends Message {
         this.username = username;
         this.psw = psw;
     }
+    public String getUsername() {return username;}
+    public String getPsw() {return psw;}
 }

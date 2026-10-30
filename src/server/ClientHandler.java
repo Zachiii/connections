@@ -16,24 +16,24 @@ public class ClientHandler implements Runnable {
     private final ConcurrentHashMap<String, ClientHandler> currentUsers;
     private ConcurrentHashMap<String, PlayerStatus> activePlayers;
     private ConcurrentHashMap<String, GameStats> gameStats;
-    private PlayerStatus playerStatus = null;
+     PlayerStatus playerStatus = null;
     private String username;
     private int clientUDPport;
     private volatile boolean isRunning = true;
-    private final GameManager gameManager;
+    private final GameTimeManager gameTimeManager;
 
     public ClientHandler(Socket clientChannel,
                          ConcurrentHashMap<String, User> registeredUsers,
                          ConcurrentHashMap<String, ClientHandler> currentUsers,
                          ConcurrentHashMap<String, PlayerStatus> activePlayers,
                          ConcurrentHashMap<String, GameStats> gameStats,
-                         GameManager gameManager) {
+                         GameTimeManager gameTimeManager) {
         this.clientChannel = clientChannel;
         this.registeredUsers = registeredUsers;
         this.currentUsers = currentUsers;
         this.activePlayers = activePlayers;
         this.gameStats = gameStats;
-        this.gameManager = gameManager;
+        this.gameTimeManager = gameTimeManager;
     }
 
     @Override
@@ -47,163 +47,21 @@ public class ClientHandler implements Runnable {
                 byte[] byteMessage = new byte[messageLength];
                 inputStream.readFully(byteMessage);
                 String messageString = new String(byteMessage, StandardCharsets.UTF_8);
-                JsonObject messageJson = JsonParser.parseString(messageString).getAsJsonObject();
-                String operation = messageJson.get("operation").getAsString();
+                JsonObject jsonObject = JsonParser.parseString(messageString).getAsJsonObject();
+                String operation = jsonObject.get("operation").getAsString();
 
                 switch (operation) {
                     case "register": {
-                        this.username = messageJson.has("username") ? messageJson.get("username").getAsString() : "";
-                        String psw = messageJson.has("psw") ? messageJson.get("psw").getAsString() : "";
-
-                        // 400: Parametri vuoti o mancanti
-                        if (Objects.equals(this.username, "") || Objects.equals(psw, "")) {
-                            System.out.println("DEBUG: Username o password vuoti");
-                            ResponseMessage response = new ResponseMessage("registerResponse", "400", "Username e password non possono essere vuoti");
-                            new SendTCPResponse(response, outputStream);
-                            break;
-                        }
-
-                        // 409: Conflitto - utente già registrato
-                        if (registeredUsers.containsKey(username)) {
-                            System.out.println("DEBUG: Utente già registrato");
-                            ResponseMessage response = new ResponseMessage("registerResponse", "409", "Utente già registrato");
-                            new SendTCPResponse(response, outputStream);
-                        } else {
-                            // 200: Registrazione completata
-                            registeredUsers.put(username, new User(username, psw));
-                            UserManager.saveUsers(registeredUsers);
-                            System.out.println("DEBUG: Utente " + username + " registrato e salvato");
-                            ResponseMessage response = new ResponseMessage("registerResponse", "200", "Utente registrato");
-                            new SendTCPResponse(response, outputStream);
-                        }
+                        AuthHelper.handleRegister(messageString, this.registeredUsers, outputStream);
                         break;
                     }
-
                     case "updateCredentials": {
-                        String oldUsername = messageJson.has("oldUsername") ? messageJson.get("oldUsername").getAsString() : "";
-                        String newUsername = messageJson.has("newUsername") ? messageJson.get("newUsername").getAsString() : "";
-                        String oldPsw = messageJson.has("oldPsw") ? messageJson.get("oldPsw").getAsString() : "";
-                        String newPsw = messageJson.has("newPsw") ? messageJson.get("newPsw").getAsString() : "";
-
-                        // 400: Campi non validi
-                        if (oldUsername.isEmpty() || oldPsw.isEmpty()) {
-                            ResponseMessage response = new ResponseMessage("updateCredentialsResponse", "400", "I campi username/password correnti sono obbligatori");
-                            new SendTCPResponse(response, outputStream);
-                            break;
-                        }
-
-                        //Devono voler aggiornare almeno uno dei due campi
-                        if (newUsername.isEmpty() && newPsw.isEmpty()) {
-                            ResponseMessage response = new ResponseMessage("updateCredentialsResponse", "400", "Specificare almeno un nuovo username o una nuova password");
-                            new SendTCPResponse(response, outputStream);
-                            break;
-                        }
-
-                        if (!registeredUsers.containsKey(oldUsername)) {
-                            // 401: Utente inesistente
-                            ResponseMessage response = new ResponseMessage("updateCredentialsResponse", "401", "Utente inesistente");
-                            new SendTCPResponse(response, outputStream);
-                            break;
-                        }
-
-                        User currentUser = registeredUsers.get(oldUsername);
-                        if (!currentUser.getPassword().equals(oldPsw)) {
-                            // 401: Password errata
-                            ResponseMessage response = new ResponseMessage("updateCredentialsResponse", "401", "Password errata");
-                            new SendTCPResponse(response, outputStream);
-                            break;
-                        }
-
-                        // 409: Il nuovo username scelto è già occupato da un altro utente
-                        if (!oldUsername.equals(newUsername) && registeredUsers.containsKey(newUsername)) {
-                            ResponseMessage response = new ResponseMessage("updateCredentialsResponse", "409", "Il nuovo username è già in uso");
-                            new SendTCPResponse(response, outputStream);
-                            break;
-                        }
-
-                        // 200: Successo aggiornamento
-                        currentUser.updateCredentials(newUsername, newPsw);
-                        if (!currentUser.getUsername().equals(oldUsername)) {
-                            //Se viene aggiornata solo la password non serve rimuovere e rimettere l'utente
-                            registeredUsers.remove(oldUsername);
-                            registeredUsers.put(currentUser.getUsername(), currentUser);
-
-                            currentUsers.remove(oldUsername);
-                            currentUsers.put(currentUser.getUsername(), this);
-                            this.username = currentUser.getUsername();
-                        }
-
-                        System.out.println("DEBUG: Credenziali aggiornate");
-                        ResponseMessage response = new ResponseMessage("updateCredentialsResponse", "200", "Credenziali aggiornate");
-                        new SendTCPResponse(response, outputStream);
-                        break;
+                        AuthHelper.handleUpdateCredentials(messageString,this,this.registeredUsers,this.currentUsers,outputStream);
                     }
-
                     case "login": {
-                        this.username = messageJson.has("username") ? messageJson.get("username").getAsString() : "";
-                        String psw = messageJson.has("psw") ? messageJson.get("psw").getAsString() : "";
-
-                        // 400: Parametri mancanti
-                        if (this.username.isEmpty() || psw.isEmpty()) {
-                            ResponseMessage response = new ResponseMessage("loginResponse", "400", "Username e password obbligatori");
-                            new SendTCPResponse(response, outputStream);
-                            break;
-                        }
-
-                        // 401: Utente inesistente
-                        if (!registeredUsers.containsKey(username)) {
-                            ResponseMessage response = new ResponseMessage("loginResponse", "401", "Utente inesistente");
-                            new SendTCPResponse(response, outputStream);
-                            System.out.println("DEBUG: Utente non registrato, login fallito");
-                            break;
-                        }
-
-                        // 409: Conflitto - sessione già attiva
-                        if (currentUsers.containsKey(username)) {
-                            ResponseMessage response = new ResponseMessage("loginResponse", "409", "Utente già loggato");
-                            new SendTCPResponse(response, outputStream);
-                            System.out.println("DEBUG: Login già fatto: " + this.username);
-                            break;
-                        }
-
-                        // 401: Password non corretta
-                        if (!registeredUsers.get(username).getPassword().equals(psw)) {
-                            ResponseMessage response = new ResponseMessage("loginResponse", "401", "Password errata");
-                            new SendTCPResponse(response, outputStream);
-                            System.out.println("DEBUG: Password errata");
-                            break;
-                        }
-
-                        // 200: Login riuscito
-                        currentUsers.put(username, this);
-                        this.clientUDPport = messageJson.has("udpPort") ? messageJson.get("udpPort").getAsInt() : 0;
-
-                        if (this.activePlayers.containsKey(username)) {
-                            // Riconnessione: recupera la sessione parziale dell'utente
-                            this.playerStatus = this.activePlayers.get(username);
-                            this.playerStatus.setOnline(true);
-                            System.out.println("DEBUG: Utente " + username + " rientrato. Parole rimaste: " + this.playerStatus.getWordsLeft().size());
-                        } else {
-                            // Prima connessione in questo round
-                            this.gameStats.get(String.valueOf(gameManager.getGameID())).setNumberOfPlayers();
-                            this.playerStatus = new PlayerStatus(username, true);
-                            GameSupport currentGame = this.gameManager.getCurrentGame();
-                            if (currentGame != null) {
-                                this.playerStatus.setWordsLeft(currentGame.getShuffledWords());
-                                this.playerStatus.setGroupWords(currentGame.getGroupWords());
-                            }
-                            System.out.println("DEBUG: Login: " + this.username);
-                            this.activePlayers.put(username, this.playerStatus);
-                        }
-
-                        GameInfoResponse response = new GameInfoResponse("loginResponse", "200", "Utente loggato");
-                        response.setWon(this.playerStatus.isWon());
-                        response.setWordsLeft(this.playerStatus.getWordsLeft());
-                        new SendTCPResponse(response, outputStream);
-                        System.out.println("DEBUG: Login effettuato");
+                        AuthHelper.handleLogin(messageString, this, this.registeredUsers, this.currentUsers, this.activePlayers, this.gameStats,this.gameTimeManager,outputStream);
                         break;
                     }
-
                     case "logout": {
                         System.out.println("DEBUG: Logout: " + this.username);
                         if (this.playerStatus != null) this.playerStatus.setOnline(false);
@@ -215,82 +73,19 @@ public class ClientHandler implements Runnable {
                         this.isRunning = false;
                         break;
                     }
-
                     case "submitProposal": {
-                        // 401: Tentativo di gioco senza sessione attiva
-                        if (this.playerStatus == null || !this.playerStatus.isOnline()) {
-                            ResponseMessage response = new ResponseMessage("submitProposalResponse", "401", "Accesso non autorizzato: effettua prima il login");
-                            new SendTCPResponse(response, outputStream);
-                            break;
-                        }
-
-                        // 403: Partita già terminata
-                        if (this.playerStatus.isGameEnded()) {
-                            ResponseMessage response = new ResponseMessage("submitProposalResponse", "403", "Partita già conclusa: vite esaurite");
-                            new SendTCPResponse(response, outputStream);
-                            break;
-                        }
-
-                        Gson gson = new Gson();
-                        ProposalMessage proposalMessage = gson.fromJson(messageString, ProposalMessage.class);
-                        ArrayList<String> proposal = proposalMessage.getProposal();
-                        String result = this.playerStatus.removeWordsGuessed(proposal);
-
-                        if (result == null) {
-                            // 422: Proposta formata regolarmente ma errata (-1 vita, -4 punti)
-                            ResponseMessage response = new ResponseMessage(
-                                    "submitProposalResponse",
-                                    "422",
-                                    "Proposta errata: combinazione non valida. Vite rimaste: " + (4 - this.playerStatus.getMistakes())
-                            );
-                            new SendTCPResponse(response, outputStream);
-                            break;
-                        } else if (result.equals("MALFORMED")) {
-                            // 400: Proposta malformata (non sono 4 parole o parole non presenti)
-                            ResponseMessage response = new ResponseMessage(
-                                    "submitProposalResponse",
-                                    "400",
-                                    "Proposta malformata: inviare 4 parole valide ancora in gioco (nessuna penalità applicata)"
-                            );
-                            new SendTCPResponse(response, outputStream);
-                            break;
-                        } else if (result.equals("ENDGAME")) {
-                            // 403 / Fine vite: notifica esaurimento e fine partita
-                            this.registeredUsers.get(username).resetStreak();
-                            ResponseMessage response = new ResponseMessage(
-                                    "submitProposalResponse",
-                                    "403",
-                                    "Vite esaurite: partita terminata"
-                            );
-                            new SendTCPResponse(response, outputStream);
-                            this.MatchEnd();
-                            break;
-                        } else if (result.equals("WIN")) {
-                            // 200: Vittoria partita
-                            this.registeredUsers.get(username).addStreak();
-                            ResponseMessage response = new ResponseMessage("submitProposalResponse", "200", "Complimenti! Hai completato tutti i gruppi e vinto la partita!");
-                            new SendTCPResponse(response, outputStream);
-                            this.MatchEnd();
-                            break;
-                        }
-                        // 200: Gruppo indovinato
-                        ResponseMessage response = new ResponseMessage("submitProposalResponse", "200", "Gruppo corretto: " + result);
-                        new SendTCPResponse(response, outputStream);
+                        GameProposalHandler session = new GameProposalHandler(this.playerStatus, this.clientChannel.getInetAddress(), this.clientUDPport);
+                        session.handleProposalRequest(messageString,this,outputStream);
                         break;
                     }
                     case "requestGameInfo": {
-                        int validatedId = validateGameRequest(messageJson, "requestGameInfoResponse", outputStream);
-                        if (validatedId == -2) break; // Controllo fallito: errore già inviato
-
-                        GameInfoResponse response = createGameInfoResponse(validatedId);
-                        new SendTCPResponse(response, outputStream);
+                        StatsHelper.handleGameInfoRequest(messageString, this.username, this.currentUsers,
+                                this.registeredUsers, this.playerStatus, this.gameTimeManager, outputStream);
                         break;
                     }
                     case "requestGameStats": {
-                        int validatedId = validateGameRequest(messageJson, "requestGameStatsResponse", outputStream);
-                        if (validatedId == -2) break; // Controllo fallito: errore già inviato
-                        GameStatsResponse response = createGameStatsResponse(validatedId);
-                        new SendTCPResponse(response, outputStream);
+                        StatsHelper.handleGameStatsRequest(messageString, this.username, this.currentUsers,
+                                this.gameStats, this.gameTimeManager, outputStream);
                         break;
                     }
                     case "requestLeaderboard":{
@@ -302,7 +97,7 @@ public class ClientHandler implements Runnable {
                             break;
                         }
                         // 200 quando restituisci i dati richiesti
-                        String gameID = messageJson.has("gameID") ? messageJson.get("gameID").getAsString() : "";
+                        String gameID = jsonObject.has("gameID") ? jsonObject.get("gameID").getAsString() : "";
                         if(gameID.equals("current")) {
                             ResponseMessage response = new ResponseMessage(operation + "Response", "200", "Dati recuperati con successo");
                             new SendTCPResponse(response, outputStream);
@@ -344,99 +139,14 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    private GameInfoResponse createGameInfoResponse(int targetId) {
-        if (targetId == -1) {
-            // Partita corrente
-            GameInfoResponse response = new GameInfoResponse("requestGameInfoResponse", "200", "Informazioni partita recuperate");
-            response.setGameID(this.gameManager.getGameID());
-            if (this.playerStatus != null) {
-                response.setWon(this.playerStatus.isWon());
-                response.setPoints(this.playerStatus.getScore());
-                response.setMistakes(this.playerStatus.getMistakes());
-                response.setWordsLeft(this.playerStatus.getWordsLeft());
-                response.setWordsGuessed(this.playerStatus.getWordsGuessed());
-            }
-            response.setTimeLeft(this.gameManager.getRemainingTimeSeconds());
-            return response;
-        }
-        // Partita conclusa: recupero dallo storico personale dell'utente
-        User currentUser = this.registeredUsers.get(this.username);
-        UserMatchResult matchResult = (currentUser != null) ? currentUser.getMatchResult(targetId) : null;
-        if (matchResult == null) {
-            return new GameInfoResponse("requestGameInfoResponse", "404", "Nessun dato trovato per questo giocatore nella partita specificata");
-        }
-        GameInfoResponse response = new GameInfoResponse("requestGameInfoResponse", "200", "Informazioni partita recuperate");
-        response.setGameID(targetId);
-        response.setWon(matchResult.isWon());
-        response.setPoints(matchResult.getScore());
-        response.setMistakes(matchResult.getMistakes());
-        response.setNumberCorrectGuesses(matchResult.getCorrectGroups());
-        return response;
-    }
-
-    private GameStatsResponse createGameStatsResponse(int targetId) {
-        boolean isCurrent = (targetId == -1);
-        int realGameId = isCurrent ? this.gameManager.getGameID() : targetId;
-        GameStats stats = this.gameStats.get(String.valueOf(realGameId));
-        if (stats == null) {
-            return new GameStatsResponse("requestGameStatsResponse", "404", "Statistiche non trovate per la partita richiesta");
-        }
-        GameStatsResponse response = new GameStatsResponse("requestGameStatsResponse", "200", "Informazioni partita recuperate");
-        response.setGameID(realGameId);
-        response.setGameEnded(!isCurrent);
-        response.setGamesWon(stats.getGamesWon());
-        response.setGamesLost(stats.getGamesLost());
-        response.setNumberOfPlayers(stats.getNumberOfPlayers());
-        if (isCurrent) {
-            response.setTimeLeft(this.gameManager.getRemainingTimeSeconds());
-        } else {
-            int players = stats.getNumberOfPlayers();
-            response.setAveragePoints(players > 0 ? ((double) stats.getTotalPoints() / players) : 0.0);
-        }
-        return response;
-    }
-
-    private int validateGameRequest(JsonObject messageJson, String responseOp, DataOutputStream outputStream) {
-        // 401: Non autenticato
-        if (this.username == null || !this.currentUsers.containsKey(this.username)) {
-            new SendTCPResponse(new ResponseMessage(responseOp, "401", "Accesso non autorizzato"), outputStream);
-            return -2;
-        }
-        String askedGameID = messageJson.has("gameID") ? messageJson.get("gameID").getAsString().trim() : "";
-        // 400: Parametro mancante o vuoto
-        if (askedGameID.isEmpty()) {
-            new SendTCPResponse(new ResponseMessage(responseOp, "400", "Devi specificare un ID di una partita o 'current'"), outputStream);
-            return -2;
-        }
-        // Caso partita corrente
-        if (askedGameID.equalsIgnoreCase("current")) {
-            return -1;
-        }
-        // Caso partita numerica
-        try {
-            int parsedId = Integer.parseInt(askedGameID);
-            int currentGameID = this.gameManager.getGameID();
-
-            // 404: ID negativo o riferito a una partita futura non ancora disputata
-            if (parsedId < 0 || parsedId > currentGameID) {
-                new SendTCPResponse(new ResponseMessage(responseOp, "404", "Questo ID partita non esiste o non è ancora stato giocato"), outputStream);
-                return -2;
-            }
-            return parsedId;
-        } catch (NumberFormatException e) {
-            // 400: Stringa non numerica e diversa da "current"
-            new SendTCPResponse(new ResponseMessage(responseOp, "400", "L'ID della partita deve essere un numero intero positivo o 'current'"), outputStream);
-            return -2;
-        }
-    }
-
     //AGGIUNGERE LA POSSIBILITà PER L'UTENTE DI SCEGLIERE SE RIMANERE LOGGATO O MENO
-    public void MatchEnd() {
-        int gameID = this.gameManager.getGameID();
+    public void MatchEnd(Message message) {
+        int gameID = this.gameTimeManager.getGameID();
 
         // Salvataggio statistiche utente
         this.playerStatus.setScore();
-        this.registeredUsers.get(username).setPoints(this.playerStatus.getScore());
+        User user = this.registeredUsers.get(this.username);
+        user.setPoints(this.playerStatus.getScore());
         UserMatchResult matchResult = new UserMatchResult(
                 gameID,
                 this.playerStatus.getScore(),
@@ -444,7 +154,12 @@ public class ClientHandler implements Runnable {
                 this.playerStatus.getWordsGuessed().size(),
                 this.playerStatus.isWon()
         );
-        registeredUsers.get(this.username).addMatchResult(matchResult);
+        user.addMatchResult(matchResult);
+        if(this.playerStatus.isWon() == 1){
+            user.addStreak();
+        } else if (this.playerStatus.isWon() == -1) {
+            user.resetStreak();
+        }
         UserManager.saveUsers(registeredUsers);
 
         // Aggiornamento statistiche partita
@@ -452,27 +167,14 @@ public class ClientHandler implements Runnable {
         if(this.playerStatus.isWon() == -1){this.gameStats.get(String.valueOf(gameID)).setGamesLost();}
         else if(this.playerStatus.isWon() == 1){this.gameStats.get(String.valueOf(gameID)).setGamesWon();}
 
-        // Notifiche UDP di fine partita con codice 500
-        Message endGameMessage = new Message("EndGame");
-        this.sendUDPMessage(endGameMessage);
-        ResponseMessage endGameStats = new ResponseMessage("EndGameStats", "500", "Partita finita");
-        this.sendUDPMessage(endGameStats);
+        //sostituire con gamestats
+        if(message == null){
+            Message endMessage = new Message("EndGame");
+            //riempio gameStats
+            InetAddress clientAddr = this.clientChannel.getInetAddress();
+            UDPNotificationManager.sendNotification(this.clientChannel.getInetAddress(),this.clientUDPport, endMessage);
+        } else {UDPNotificationManager.sendNotification(this.clientChannel.getInetAddress(),this.clientUDPport, message);}
         //chiedere all'utente se vuole rimanere loggato
-    }
-
-    public void sendUDPMessage(Message message) {
-        if (this.clientUDPport <= 0) return;
-        Gson gson = new GsonBuilder().create();
-        String jsonMessage = gson.toJson(message);
-        byte[] jsonMessageBytes = jsonMessage.getBytes(StandardCharsets.UTF_8);
-        InetAddress clientAddr = this.clientChannel.getInetAddress();
-        DatagramPacket packet = new DatagramPacket(jsonMessageBytes, jsonMessageBytes.length, clientAddr, this.clientUDPport);
-        try (DatagramSocket socket = new DatagramSocket()) {
-            System.out.println("DEBUG: Inviata notifica UDP a porta: " + this.clientUDPport);
-            socket.send(packet);
-        } catch (IOException e) {
-            System.out.println("Errore invio UDP: " + e.getMessage());
-        }
     }
 
     public void setShuffledListOfWords(ArrayList<String> shuffledListOfWords) {
@@ -490,5 +192,12 @@ public class ClientHandler implements Runnable {
                 this.clientChannel.close(); // La chiusura del socket sblocca e fa fallire inputStream.readInt()
             }
         } catch (IOException ignored) {}
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+    public void setClientUDPport(int clientUDPport) {
+        this.clientUDPport = clientUDPport;
     }
 }

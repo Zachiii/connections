@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class User {
-    //Dati dell'utente generali
+    //Contiene tutti i dati relativi all'utente, viene poi serializzato all'interno di users.json
     private String username;
     private String password;
     private int gamesWon;

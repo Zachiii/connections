@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class PlayerStatus {
-    //Dati dell'utente riguardanti la partita in corso
+    //Dati dell'utente riguardanti la partita in corso, verrano poi usati per aggiornare i dati in User
     private String username;
     private Boolean online;
     private Boolean gameEnded;

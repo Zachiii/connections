@@ -9,7 +9,7 @@ import java.util.concurrent.ExecutorService;
 public class CloseServer implements Runnable {
     private final ServerSocket serverSocket;
     private final ExecutorService pool;
-    private final GameManager gameManager;
+    private final GameTimeManager gameTimeManager;
     private final Thread timerThread;
     private final ConcurrentHashMap<String, User> registeredUsers;
     private final ConcurrentHashMap<String, ClientHandler> currentUsers;
@@ -17,14 +17,14 @@ public class CloseServer implements Runnable {
 
     public CloseServer(ServerSocket serverSocket,
                        ExecutorService pool,
-                       GameManager gameManager,
+                       GameTimeManager gameTimeManager,
                        ConcurrentHashMap<String,GameStats> gameStats,
                        Thread timerThread,
                        ConcurrentHashMap<String, User> registeredUsers,
                        ConcurrentHashMap<String, ClientHandler> currentUsers) {
         this.serverSocket = serverSocket;
         this.pool = pool;
-        this.gameManager = gameManager;
+        this.gameTimeManager = gameTimeManager;
         this.timerThread = timerThread;
         this.registeredUsers = registeredUsers;
         this.currentUsers = currentUsers;
@@ -42,8 +42,8 @@ public class CloseServer implements Runnable {
                 System.out.println("[SERVER] Procedura di spegnimento avviata...");
 
                 //Ferma il loop di GameManager e sveglialo dal Thread.sleep
-                if (gameManager != null) {
-                    gameManager.stop();
+                if (gameTimeManager != null) {
+                    gameTimeManager.stop();
                 }
                 if (timerThread != null && timerThread.isAlive()) {
                     timerThread.interrupt();

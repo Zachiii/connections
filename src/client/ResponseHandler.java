@@ -63,6 +63,7 @@ public class ResponseHandler {
                     if(responseMessage.getCode().equals("200"))response.printGameStats();
                     break;
                 }
+
             }
             return true;
         } catch (IOException e) {
