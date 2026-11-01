@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class AuthHelper {
 
     public static void handleRegister(String jsonMessage,
+                                      ClientHandler client,
                                       ConcurrentHashMap<String, User> registeredUsers,
                                       DataOutputStream out) throws IOException {
         Gson gson = new Gson();
@@ -27,6 +28,8 @@ public class AuthHelper {
 
         if (registeredUsers.putIfAbsent(message.getUsername(), new User(message.getUsername(), message.getPsw())) == null) {
             UserManager.saveUsers(registeredUsers);
+            client.setUsername(message.getUsername().trim());
+            System.out.println("DEBUG: Registrazione effettuata: " + message.getUsername().trim());
             new SendTCPResponse(new ResponseMessage("registerResponse", "200", "Registrazione completata"), out);
         } else {
             new SendTCPResponse(new ResponseMessage("registerResponse", "409", "Username già registrato"), out);
@@ -64,8 +67,7 @@ public class AuthHelper {
             return;
         }
 
-        // Setto this.username, this.clientUDPport ,this.currentUsers e this.playerStatus in ClientHandler
-        client.setUsername(username);
+        // this.clientUDPport ,this.currentUsers e this.playerStatus in ClientHandler
         if (jsonObject.has("udpPort")) {
             client.setClientUDPport(jsonObject.get("udpPort").getAsInt());
         }
@@ -89,7 +91,7 @@ public class AuthHelper {
         response.setWon(client.playerStatus.isWon());
         response.setWordsLeft(client.playerStatus.getWordsLeft());
         new SendTCPResponse(response, out);
-        System.out.println("DEBUG: Login effettuato");
+        System.out.println("DEBUG: Login effettuato: " + username);
     }
 
     public static void handleUpdateCredentials(String jsonMessage, ClientHandler client,

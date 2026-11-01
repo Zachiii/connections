@@ -64,11 +64,16 @@ public class GameProposalHandler {
                     "403",
                     "Vite esaurite: partita terminata"
             );
-            client.MatchEnd(response);
+            new SendTCPResponse(response, out);
+            client.MatchEnd(null);
         } else if (result.equals("WIN")) {
             // 200: Vittoria partita
-            ResponseMessage response = new ResponseMessage("submitProposalResponse", "200", "Complimenti! Hai completato tutti i gruppi e vinto la partita!");
-            client.MatchEnd(response);
+            ResponseMessage response = new ResponseMessage(
+                    "submitProposalResponse",
+                    "200",
+                    "Complimenti! Hai completato tutti i gruppi e vinto la partita!");
+            new SendTCPResponse(response, out);
+            client.MatchEnd(null);
         } else {
             // 200: Gruppo indovinato
             ResponseMessage response = new ResponseMessage("submitProposalResponse", "200", "Gruppo corretto: " + result);

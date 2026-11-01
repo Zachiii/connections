@@ -19,7 +19,7 @@ public class ClientHandler implements Runnable {
      PlayerStatus playerStatus = null;
     private String username;
     private int clientUDPport;
-    private volatile boolean isRunning = true;
+    private boolean isRunning = true;
     private final GameTimeManager gameTimeManager;
 
     public ClientHandler(Socket clientChannel,
@@ -52,7 +52,7 @@ public class ClientHandler implements Runnable {
 
                 switch (operation) {
                     case "register": {
-                        AuthHelper.handleRegister(messageString, this.registeredUsers, outputStream);
+                        AuthHelper.handleRegister(messageString, this,this.registeredUsers, outputStream);
                         break;
                     }
                     case "updateCredentials": {
@@ -173,7 +173,9 @@ public class ClientHandler implements Runnable {
             //riempio gameStats
             InetAddress clientAddr = this.clientChannel.getInetAddress();
             UDPNotificationManager.sendNotification(this.clientChannel.getInetAddress(),this.clientUDPport, endMessage);
-        } else {UDPNotificationManager.sendNotification(this.clientChannel.getInetAddress(),this.clientUDPport, message);}
+        } else {
+            System.out.println("DEBUG: MatchEnd: " + this.username);
+            UDPNotificationManager.sendNotification(this.clientChannel.getInetAddress(),this.clientUDPport, message);}
         //chiedere all'utente se vuole rimanere loggato
     }
 
