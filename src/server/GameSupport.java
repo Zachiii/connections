@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class GameSupport {
+    // Crea la lista di parole randomizzate per ogni giocatore
     private int gameId;
     private List<GroupSupport> groups;
 

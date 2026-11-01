@@ -12,6 +12,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
 
+// Gestisce le risposte TCP mandate dal server
+
 public class ResponseHandler {
     private final boolean success;
 

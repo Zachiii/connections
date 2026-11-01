@@ -4,13 +4,18 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
+
+// Serve per la gestione dello spegnimento del server: chiude tutti i client attivi, chiude gameTimeManager e chiude la socket del server
 
 public class CloseServer implements Runnable {
     private final ServerSocket serverSocket;
     private final ExecutorService pool;
     private final GameTimeManager gameTimeManager;
+    // thread che esegue gameTimeManager
     private final Thread timerThread;
+    private ConcurrentLinkedQueue<ClientHandler> allClients;
     private final ConcurrentHashMap<String, User> registeredUsers;
     private final ConcurrentHashMap<String, ClientHandler> currentUsers;
     private final ConcurrentHashMap<String, GameStats> gameStats;
@@ -20,12 +25,14 @@ public class CloseServer implements Runnable {
                        GameTimeManager gameTimeManager,
                        ConcurrentHashMap<String,GameStats> gameStats,
                        Thread timerThread,
+                       ConcurrentLinkedQueue<ClientHandler> allClients,
                        ConcurrentHashMap<String, User> registeredUsers,
                        ConcurrentHashMap<String, ClientHandler> currentUsers) {
         this.serverSocket = serverSocket;
         this.pool = pool;
         this.gameTimeManager = gameTimeManager;
         this.timerThread = timerThread;
+        this.allClients = allClients;
         this.registeredUsers = registeredUsers;
         this.currentUsers = currentUsers;
         this.gameStats = gameStats;
@@ -49,10 +56,11 @@ public class CloseServer implements Runnable {
                     timerThread.interrupt();
                 }
 
-                //Chiude tutte le connessioni con i client attive
-                for (ClientHandler client : currentUsers.values()) {
+                //Chiude tutte le connessioni con i client
+                for (ClientHandler client : allClients) {
                     client.closeConnection();
                 }
+                allClients.clear();
                 currentUsers.clear();
 
                 //Persistenza finale su disco

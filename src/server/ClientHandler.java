@@ -9,26 +9,33 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
+// Thread che connette il client al server, gestisce i comandi fatti dal client (register, login, ...)
 
 public class ClientHandler implements Runnable {
     private final Socket clientChannel;
+    private final ConcurrentLinkedQueue<ClientHandler> allClients;
     private final ConcurrentHashMap<String, User> registeredUsers;
     private final ConcurrentHashMap<String, ClientHandler> currentUsers;
-    private ConcurrentHashMap<String, PlayerStatus> activePlayers;
-    private ConcurrentHashMap<String, GameStats> gameStats;
-     PlayerStatus playerStatus = null;
+    private final ConcurrentHashMap<String, PlayerStatus> activePlayers;
+    private final ConcurrentHashMap<String, GameStats> gameStats;
+    PlayerStatus playerStatus = null;
     private String username;
     private int clientUDPport;
-    private boolean isRunning = true;
+    private volatile boolean isRunning = true;
     private final GameTimeManager gameTimeManager;
 
     public ClientHandler(Socket clientChannel,
+                         ConcurrentLinkedQueue<ClientHandler> allClients,
                          ConcurrentHashMap<String, User> registeredUsers,
                          ConcurrentHashMap<String, ClientHandler> currentUsers,
                          ConcurrentHashMap<String, PlayerStatus> activePlayers,
                          ConcurrentHashMap<String, GameStats> gameStats,
                          GameTimeManager gameTimeManager) {
         this.clientChannel = clientChannel;
+        this.allClients = allClients;
+        this.allClients.add(this);
         this.registeredUsers = registeredUsers;
         this.currentUsers = currentUsers;
         this.activePlayers = activePlayers;
@@ -136,6 +143,7 @@ public class ClientHandler implements Runnable {
         } finally {
             if (this.playerStatus != null) this.playerStatus.setOnline(false);
             if (this.username != null) currentUsers.remove(this.username, this);
+            this.allClients.remove(this);
         }
     }
 
@@ -188,7 +196,7 @@ public class ClientHandler implements Runnable {
     }
 
     public void closeConnection() {
-        this.isRunning = false; // Rendi isRunning un campo della classe, non una variabile locale del run()!
+        this.isRunning = false;
         try {
             if (this.clientChannel != null && !this.clientChannel.isClosed()) {
                 this.clientChannel.close(); // La chiusura del socket sblocca e fa fallire inputStream.readInt()

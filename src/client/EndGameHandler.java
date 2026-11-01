@@ -13,6 +13,9 @@ import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
+
+// Gestisce le risposte UDP del server, tra cui il fine partita
+
 public class EndGameHandler implements Runnable {
     DatagramSocket socket;
     public EndGameHandler(DatagramSocket socket) {

@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class AuthHelper {
-
+    // Gestione dei comandi di register, login e updateCredentials
     public static void handleRegister(String jsonMessage,
                                       ClientHandler client,
                                       ConcurrentHashMap<String, User> registeredUsers,
@@ -73,10 +73,11 @@ public class AuthHelper {
         }
         currentUsers.put(username, client);
         if (activePlayers.containsKey(username)) {
+            // Non è il primo login durante questa partita quindi vado a recuperare le informazioni già possedute in PlayerStatus
             client.playerStatus = activePlayers.get(username);
             client.playerStatus.setOnline(true);
         } else {
-            //Primo login
+            // Primo login quindi devo popolare anche PlayerStatus che va a gestire le statistiche del giocatore durante la partita
             client.playerStatus = new PlayerStatus(username, true);
             GameSupport activeGame = gameManager.getCurrentGame();
             if (activeGame != null) {
@@ -126,13 +127,13 @@ public class AuthHelper {
             new SendTCPResponse(new ResponseMessage("updateCredentialsResponse", "401", "Password errata"), out);
             return;
         }
-        //Se vuole cambiare username, controlla che non sia già occupato da qualcun altro
+        // Se vuole cambiare username, controlla che non sia già occupato da qualcun altro
         if (!newUsername.isEmpty() && !newUsername.equals(oldUsername) && registeredUsers.containsKey(newUsername)) {
             new SendTCPResponse(new ResponseMessage("updateCredentialsResponse", "409", "Il nuovo username scelto è già occupato"), out);
             return;
         }
         currentUser.updateCredentials(newUsername, newPsw);
-        // 7. Se lo username è effettivamente cambiato, aggiorna le chiavi delle mappe
+        // Se lo username è effettivamente cambiato, aggiorna le chiavi delle mappe
         if (!currentUser.getUsername().equals(oldUsername)) {
             registeredUsers.remove(oldUsername);
             registeredUsers.put(currentUser.getUsername(), currentUser);

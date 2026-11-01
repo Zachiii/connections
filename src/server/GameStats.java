@@ -3,7 +3,7 @@ package server;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class GameStats {
-    //Statistiche per singola partita
+    // Statistiche di una singola partita, verrà poi usato per creare gamestats.json
     private final int gameID;
     private final AtomicInteger numberOfPlayers = new AtomicInteger(0);
     private final AtomicInteger totalPoints = new AtomicInteger(0);
