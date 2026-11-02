@@ -148,7 +148,7 @@ public class ClientHandler implements Runnable {
     }
 
     //AGGIUNGERE LA POSSIBILITà PER L'UTENTE DI SCEGLIERE SE RIMANERE LOGGATO O MENO
-    public void MatchEnd(Message message) {
+    public void MatchEnd() {
         int gameID = this.gameTimeManager.getGameID();
 
         // Salvataggio statistiche utente
@@ -175,15 +175,23 @@ public class ClientHandler implements Runnable {
         if(this.playerStatus.isWon() == -1){this.gameStats.get(String.valueOf(gameID)).setGamesLost();}
         else if(this.playerStatus.isWon() == 1){this.gameStats.get(String.valueOf(gameID)).setGamesWon();}
 
-        //sostituire con gamestats
-        if(message == null){
-            Message endMessage = new Message("EndGame");
-            //riempio gameStats
-            InetAddress clientAddr = this.clientChannel.getInetAddress();
-            UDPNotificationManager.sendNotification(this.clientChannel.getInetAddress(),this.clientUDPport, endMessage);
-        } else {
-            System.out.println("DEBUG: MatchEnd: " + this.username);
-            UDPNotificationManager.sendNotification(this.clientChannel.getInetAddress(),this.clientUDPport, message);}
+        //Creazione messaggio di EndGame
+        System.out.println("DEBUG: MatchEnd: " + this.username);
+        GameEndResponse endGameMessage = new GameEndResponse("EndGame","200","GiocoFinito");
+        endGameMessage.setGameID(gameID);
+        endGameMessage.setTimeLeft(this.gameTimeManager.getRemainingTimeSeconds());
+        endGameMessage.setWordsGuessed(this.playerStatus.getWordsGuessed());
+        endGameMessage.setWordsLeft(this.playerStatus.getWordsLeft());
+        endGameMessage.setMistakes(this.playerStatus.getMistakes());
+        endGameMessage.setPlayerPoints(this.playerStatus.getScore());
+        endGameMessage.setWon(this.playerStatus.isWon());
+        endGameMessage.setWordsLeft(this.playerStatus.getWordsLeft());
+        endGameMessage.setAveragePoints(this.gameStats.get(String.valueOf(gameID)).getAveragePoints());
+        endGameMessage.setNumberOfPlayers(this.gameStats.get(String.valueOf(gameID)).getNumberOfPlayers());
+        endGameMessage.setGamesLost(this.gameStats.get(String.valueOf(gameID)).getGamesLost());
+        endGameMessage.setGamesWon(this.gameStats.get(String.valueOf(gameID)).getGamesWon());
+        InetAddress clientAddr = this.clientChannel.getInetAddress();
+        UDPNotificationManager.sendNotification(this.clientChannel.getInetAddress(),this.clientUDPport, endGameMessage);
         //chiedere all'utente se vuole rimanere loggato
     }
 

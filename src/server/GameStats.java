@@ -24,4 +24,8 @@ public class GameStats {
     public int getGamesWon() { return this.gamesWon.get(); }
     public int getGamesLost() { return this.gamesLost.get(); }
     public int getGameID() { return this.gameID; }
+    public double getAveragePoints() {
+        if(this.numberOfPlayers.get() == 0) return 0.0;
+        return (double) this.totalPoints.get()/this.numberOfPlayers.get();
+    }
 }

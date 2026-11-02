@@ -3,6 +3,7 @@ package client;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import common.GameEndResponse;
 import common.ResponseMessage;
 
 import java.io.IOException;
@@ -30,15 +31,8 @@ public class EndGameHandler implements Runnable {
                 socket.receive(packet);
                 String message = new String(packet.getData(),0,packet.getLength(),StandardCharsets.UTF_8);
                 Gson gson = new Gson();
-                ResponseMessage responseMessage = gson.fromJson(message, ResponseMessage.class);
-                switch(responseMessage.getOperation()){
-                    case "submitProposalResponse": {
-                        System.out.println(responseMessage.getResponse());
-                    }
-                    case "EndGame": {
-                        System.out.println(responseMessage.getResponse());
-                    }
-                }
+                GameEndResponse responseMessage = gson.fromJson(message, GameEndResponse.class);
+                responseMessage.printEndGameResponse();
             }
         } catch (SocketException e) {
             // Terminazione normale: la socket UDP è stata chiusa dal client in fase di logout/uscita

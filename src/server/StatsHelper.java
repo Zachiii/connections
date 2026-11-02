@@ -11,15 +11,22 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class StatsHelper {
 
+    /*
+    * validateID == -2 --> ID non corretto
+    * validateID == -1 --> ID partita corrente
+    * else ID corretto di una partita passata
+    * */
+
     public static void handleGameInfoRequest(String jsonMessage, String username,
                                              ConcurrentHashMap<String, ClientHandler> currentUsers,
                                              ConcurrentHashMap<String, User> registeredUsers,
-                                             PlayerStatus status, GameTimeManager gameManager,
+                                             PlayerStatus status,
+                                             GameTimeManager gameManager,
                                              DataOutputStream out) throws IOException {
         JsonObject jsonObject = JsonParser.parseString(jsonMessage).getAsJsonObject();
         int validatedId = validateGameRequest(jsonObject, "requestGameInfoResponse", username, currentUsers, gameManager, out);
-        if (validatedId == -2) return; // Controllo fallito: errore già inviato via TCP
-
+        if (validatedId == -2) {
+            return;} // Controllo fallito: errore già inviato via TCP
         GameInfoResponse response = createGameInfoResponse(validatedId, username, registeredUsers, status, gameManager);
         new SendTCPResponse(response, out);
     }

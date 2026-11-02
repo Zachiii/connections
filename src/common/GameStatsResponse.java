@@ -8,7 +8,7 @@ public class GameStatsResponse extends ResponseMessage {
     private int gamesWon;
     private int gamesLost;
     private double averagePoints;
-    private long timeLeft;
+    private Long timeLeft;
     private boolean gameEnded;
     public GameStatsResponse(String operation, String code, String response) {
         super(operation, code, response);
@@ -18,7 +18,7 @@ public class GameStatsResponse extends ResponseMessage {
     public void setNumberOfPlayers(int numberOfPlayers) {this.numberOfPlayers = numberOfPlayers;}
     public void setGamesWon(int gamesWon) {this.gamesWon = gamesWon;}
     public void setGamesLost(int gamesLost) {this.gamesLost = gamesLost;}
-    public void setTimeLeft(long timeLeft) {this.timeLeft = timeLeft;}
+    public void setTimeLeft(Long timeLeft) {this.timeLeft = timeLeft;}
     public void setGameEnded(boolean gameEnded) {this.gameEnded = gameEnded;}
     public void setAveragePoints(double averagePoints) {this.averagePoints = averagePoints;}
 

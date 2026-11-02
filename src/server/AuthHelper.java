@@ -56,6 +56,7 @@ public class AuthHelper {
             return;
         }
 
+        // Controllo se l'utente si era già registrato o meno
         User user = registeredUsers.get(username);
 
         if (user == null || !user.getPassword().equals(psw)) {
@@ -68,6 +69,7 @@ public class AuthHelper {
         }
 
         // this.clientUDPport ,this.currentUsers e this.playerStatus in ClientHandler
+        client.setUsername(username);
         if (jsonObject.has("udpPort")) {
             client.setClientUDPport(jsonObject.get("udpPort").getAsInt());
         }
@@ -84,6 +86,7 @@ public class AuthHelper {
                 client.playerStatus.setWordsLeft(activeGame.getShuffledWords());
                 client.playerStatus.setGroupWords(activeGame.getGroupWords());
             }
+            client.playerStatus.setOnline(true);
             gameStats.get(String.valueOf(gameManager.getGameID())).setNumberOfPlayers();
             activePlayers.put(username, client.playerStatus);
         }
