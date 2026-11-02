@@ -176,15 +176,6 @@ public class ClientHandler implements Runnable {
         endGameMessage.setGamesWon(this.gameStats.get(String.valueOf(gameID)).getGamesWon());
         InetAddress clientAddr = this.clientChannel.getInetAddress();
         UDPNotificationManager.sendNotification(this.clientChannel.getInetAddress(),this.clientUDPport, endGameMessage);
-        //chiedere all'utente se vuole rimanere loggato
-    }
-
-    public void setShuffledListOfWords(ArrayList<String> shuffledListOfWords) {
-        if (this.playerStatus != null) this.playerStatus.setWordsLeft(shuffledListOfWords);
-    }
-
-    public void setGroupOfWords(ConcurrentHashMap<String, ArrayList<String>> groupOfWords) {
-        if (this.playerStatus != null) this.playerStatus.setGroupWords(groupOfWords);
     }
 
     public void saveUserStats(int gameID){
@@ -232,4 +223,5 @@ public class ClientHandler implements Runnable {
     public void setClientUDPport(int clientUDPport) {
         this.clientUDPport = clientUDPport;
     }
+    public String getUsername(){return this.username;}
 }

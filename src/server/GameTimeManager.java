@@ -47,8 +47,13 @@ public class GameTimeManager implements Runnable {
             System.out.println("DEBUG: Partita caricata: " + this.currentGame.getGroupWords());
             if(this.currentGame != null){
                 for(ClientHandler client: this.currentUsers.values()){
-                    client.setShuffledListOfWords(this.currentGame.getShuffledWords());
-                    client.setGroupOfWords(this.currentGame.getGroupWords());
+                    String username = client.getUsername();
+
+                    PlayerStatus newStatus = new PlayerStatus(username,true);
+                    newStatus.setGroupWords(this.currentGame.getGroupWords());
+                    newStatus.setWordsLeft(this.currentGame.getShuffledWords());
+                    client.playerStatus = newStatus;
+                    this.activePlayers.put(username,newStatus);
                 }
             }
             this.startTimeMillis = System.currentTimeMillis();
@@ -69,6 +74,7 @@ public class GameTimeManager implements Runnable {
                 clientHandler.MatchEnd();
             }
             activePlayers.clear();  //Pulisco la lista di giocatori attivi
+            ActiveMatchManager.clearActiveMatch();
             gameID++;
             this.serverProp.updateGameID();
         }

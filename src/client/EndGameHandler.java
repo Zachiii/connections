@@ -15,7 +15,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
 
-// Gestisce le risposte UDP del server, tra cui il fine partita
+// Gestisce le risposte UDP del server
 
 public class EndGameHandler implements Runnable {
     DatagramSocket socket;
@@ -33,6 +33,7 @@ public class EndGameHandler implements Runnable {
                 Gson gson = new Gson();
                 GameEndResponse responseMessage = gson.fromJson(message, GameEndResponse.class);
                 responseMessage.printEndGameResponse();
+                System.out.println("\nLa partita è finita, se non vuoi rimanere loggato per aspettare la prossima scrivi 'logout' ");
             }
         } catch (SocketException e) {
             // Terminazione normale: la socket UDP è stata chiusa dal client in fase di logout/uscita

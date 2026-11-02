@@ -11,14 +11,14 @@ public class User {
     private int gamesWon;
     private int gamesLost;
     private int points;
-    private int puzzlesCompleted;
+    private int puzzlesCompleted;       //per definizione qualsiasi puzzle giocato
     private int winRate;
     private int lossRate;
     private int currentStreak;
     private int maxStreak;
     private int perfectPuzzles;
     //Storico delle partite: chiave = gameID
-    private ConcurrentHashMap<Integer,UserMatchResult> playerHistory;
+    private final ConcurrentHashMap<Integer,UserMatchResult> playerHistory;
     public User(String username, String password) {
         this.username = username;
         this.password = password;

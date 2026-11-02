@@ -15,8 +15,9 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.concurrent.ConcurrentHashMap;
 
+// Serializzazione di gameStats
+
 public class GameStatsManager {
-    // Serializzazione di gameStats
     private static final String TARGET_PATH = "src/server/gamestats.json";
     private static final String TEMP_PATH   = "src/server/gamestats_temp.json";
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();

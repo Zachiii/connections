@@ -19,6 +19,7 @@ public class CloseServer implements Runnable {
     private final ConcurrentHashMap<String, User> registeredUsers;
     private final ConcurrentHashMap<String, ClientHandler> currentUsers;
     private final ConcurrentHashMap<String, GameStats> gameStats;
+    private final ConcurrentHashMap<String, PlayerStatus> activePlayers;
 
     public CloseServer(ServerSocket serverSocket,
                        ExecutorService pool,
@@ -27,7 +28,8 @@ public class CloseServer implements Runnable {
                        Thread timerThread,
                        ConcurrentLinkedQueue<ClientHandler> allClients,
                        ConcurrentHashMap<String, User> registeredUsers,
-                       ConcurrentHashMap<String, ClientHandler> currentUsers) {
+                       ConcurrentHashMap<String, ClientHandler> currentUsers,
+                       ConcurrentHashMap<String,PlayerStatus> activePlayers) {
         this.serverSocket = serverSocket;
         this.pool = pool;
         this.gameTimeManager = gameTimeManager;
@@ -36,6 +38,7 @@ public class CloseServer implements Runnable {
         this.registeredUsers = registeredUsers;
         this.currentUsers = currentUsers;
         this.gameStats = gameStats;
+        this.activePlayers = activePlayers;
     }
 
     @Override
@@ -69,6 +72,7 @@ public class CloseServer implements Runnable {
                 System.out.println("[SERVER] Salvataggio dati in corso...");
                 UserManager.saveUsers(registeredUsers);
                 GameStatsManager.saveGameStats(gameStats);
+                ActiveMatchManager.saveActiveMatch(activePlayers);
 
                 //Chiude la ServerSocket: questo sblocca immediatamente la accept()
                 try {

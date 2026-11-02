@@ -15,8 +15,10 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.concurrent.ConcurrentHashMap;
 
+// Serializzazione di registeredUsers
+
 public class UserManager {
-    // Serializzazione di registeredUsers
+
     private static final String TARGET_PATH = "src/server/users.json";
     private static final String TEMP_PATH   = "src/server/users_temp.json";
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();

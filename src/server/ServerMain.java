@@ -20,7 +20,7 @@ public class ServerMain {
         //HashMap degli utenti che hanno fatto il login
         ConcurrentHashMap<String,ClientHandler> currentUsers = new ConcurrentHashMap<>();
         //HashMap degli utenti che stanno giocando
-        ConcurrentHashMap<String,PlayerStatus> activePlayers = new ConcurrentHashMap<>();
+        ConcurrentHashMap<String,PlayerStatus> activePlayers = ActiveMatchManager.loadActiveMatch();
         //HashMap di tutte le partite giocate
         ConcurrentHashMap<String,GameStats>  gameStats = GameStatsManager.loadGameStats();
         //Mando matchDurationSeconds a un thread che si occuperà di far scorrere il tempo e di avvisare il server quando la partita sarà terminata
@@ -52,7 +52,7 @@ public class ServerMain {
             System.out.println("DEBUG: Server in ascolto su questo indirizzo: " + serverSocket.getLocalSocketAddress());
 
             // AVVIO DEL THREAD DI SPEGNIMENTO DEDICATO
-            CloseServer closeServerTask = new CloseServer(serverSocket, pool, gameTimeManager, gameStats, timerThread, allClients, registeredUsers, currentUsers);
+            CloseServer closeServerTask = new CloseServer(serverSocket, pool, gameTimeManager, gameStats, timerThread, allClients, registeredUsers, currentUsers, activePlayers);
             Thread closeThread = new Thread(closeServerTask, "CloseServer-Thread");
             closeThread.start();
 

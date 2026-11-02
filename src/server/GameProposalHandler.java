@@ -28,7 +28,7 @@ public class GameProposalHandler {
             return;
         }
 
-        // 403: Partita già terminata (giocatore senza vite rimanenti)
+        // 403: Partita già terminata
         if (this.playerStatus.isGameEnded()) {
             ResponseMessage response = new ResponseMessage("submitProposalResponse", "403", "Partita già conclusa");
             new SendTCPResponse(response, out);
