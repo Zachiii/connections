@@ -40,11 +40,9 @@ public class GameInfoResponse  extends ResponseMessage {
         if(this.won == 1){
             System.out.println("Corrects guesses: " + this.numberCorrectGuesses);
             System.out.println("Complimenti, hai vinto la partita");
-            return;
         } else if (this.won == -1){
             System.out.println("Corrects guesses: " + this.wordsGuessed.size());
             System.out.println("Vite esaurite: hai perso");
-            return;
         }
     }
 
