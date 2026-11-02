@@ -51,14 +51,10 @@ public class GameInfoResponse  extends ResponseMessage {
     public void printWordsLeft(){
         if(!this.wordsLeft.isEmpty()){
             System.out.println("\n--- PAROLE DELLA PARTITA IN CORSO ---\n");
-            for(int i = 0; i < this.wordsLeft.size(); i++){
-                i++;
-                if(i%4==0){
-                    i--;
-                    System.out.print(this.wordsLeft.get(i) + "\n");
-                } else {
-                    i--;
-                    System.out.print("    " + this.wordsLeft.get(i) + "    ");
+            for (int i = 0; i < this.wordsLeft.size(); i++) {
+                System.out.print(this.wordsLeft.get(i) + "\t");
+                if ((i + 1) % 4 == 0) {
+                    System.out.println();
                 }
             }
         }
