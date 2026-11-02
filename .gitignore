@@ -21,6 +21,7 @@ src/META-INF/MANIFEST.MF
 src/META-INF
 src/server/users.json
 src/server/gamestats.json
+src/server/active_match.json
 codes
 # --- PDF del progetto
 *.pdf
