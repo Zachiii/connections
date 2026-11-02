@@ -7,7 +7,6 @@ import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -71,7 +70,10 @@ public class ClientHandler implements Runnable {
                     }
                     case "logout": {
                         System.out.println("DEBUG: Logout: " + this.username);
-                        if (this.playerStatus != null) this.playerStatus.setOnline(false);
+                        if (this.playerStatus != null) {
+                            saveUserStats(this.gameTimeManager.getGameID());
+                            updateGameStats(this.gameTimeManager.getGameID());
+                            this.playerStatus.setOnline(false);}
                         if (this.username != null) currentUsers.remove(this.username, this);
 
                         // 200: Logout completato
@@ -86,12 +88,12 @@ public class ClientHandler implements Runnable {
                         break;
                     }
                     case "requestGameInfo": {
-                        StatsHelper.handleGameInfoRequest(messageString, this.username, this.currentUsers,
+                        StatsRequestHelper.handleGameInfoRequest(messageString, this.username, this.currentUsers,
                                 this.registeredUsers, this.playerStatus, this.gameTimeManager, outputStream);
                         break;
                     }
                     case "requestGameStats": {
-                        StatsHelper.handleGameStatsRequest(messageString, this.username, this.currentUsers,
+                        StatsRequestHelper.handleGameStatsRequest(messageString, this.username, this.currentUsers,
                                 this.gameStats, this.gameTimeManager, outputStream);
                         break;
                     }
@@ -152,28 +154,10 @@ public class ClientHandler implements Runnable {
         int gameID = this.gameTimeManager.getGameID();
 
         // Salvataggio statistiche utente
-        this.playerStatus.setScore();
-        User user = this.registeredUsers.get(this.username);
-        user.setPoints(this.playerStatus.getScore());
-        UserMatchResult matchResult = new UserMatchResult(
-                gameID,
-                this.playerStatus.getScore(),
-                this.playerStatus.getMistakes(),
-                this.playerStatus.getWordsGuessed().size(),
-                this.playerStatus.isWon()
-        );
-        user.addMatchResult(matchResult);
-        if(this.playerStatus.isWon() == 1){
-            user.addStreak();
-        } else if (this.playerStatus.isWon() == -1) {
-            user.resetStreak();
-        }
-        UserManager.saveUsers(registeredUsers);
+        saveUserStats(gameID);
 
         // Aggiornamento statistiche partita
-        this.gameStats.get(String.valueOf(gameID)).setTotalPoints(this.playerStatus.getScore());
-        if(this.playerStatus.isWon() == -1){this.gameStats.get(String.valueOf(gameID)).setGamesLost();}
-        else if(this.playerStatus.isWon() == 1){this.gameStats.get(String.valueOf(gameID)).setGamesWon();}
+        updateGameStats(gameID);
 
         //Creazione messaggio di EndGame
         System.out.println("DEBUG: MatchEnd: " + this.username);
@@ -203,7 +187,37 @@ public class ClientHandler implements Runnable {
         if (this.playerStatus != null) this.playerStatus.setGroupWords(groupOfWords);
     }
 
+    public void saveUserStats(int gameID){
+        this.playerStatus.setScore();
+        User user = this.registeredUsers.get(this.username);
+        user.setPoints(this.playerStatus.getScore());
+        UserMatchResult matchResult = new UserMatchResult(
+                gameID,
+                this.playerStatus.getScore(),
+                this.playerStatus.getMistakes(),
+                this.playerStatus.getWordsGuessed().size(),
+                this.playerStatus.isWon()
+        );
+        user.addMatchResult(matchResult);
+        if(this.playerStatus.isWon() == 1){
+            user.addStreak();
+        } else if (this.playerStatus.isWon() == -1) {
+            user.resetStreak();
+        }
+        System.out.println("DEBUG: User aggiornato: " + this.username);
+        UserManager.saveUsers(registeredUsers);
+    }
+
+    public void updateGameStats(int gameID){
+        this.gameStats.get(String.valueOf(gameID)).setTotalPoints(this.playerStatus.getScore());
+        if(this.playerStatus.isWon() == -1){this.gameStats.get(String.valueOf(gameID)).setGamesLost();}
+        else if(this.playerStatus.isWon() == 1){this.gameStats.get(String.valueOf(gameID)).setGamesWon();}
+    }
+
     public void closeConnection() {
+        saveUserStats(this.gameTimeManager.getGameID());
+        updateGameStats(this.gameTimeManager.getGameID());
+        System.out.println("DEBUG: statistiche: " + this.username + " aggiornate");
         this.isRunning = false;
         try {
             if (this.clientChannel != null && !this.clientChannel.isClosed()) {

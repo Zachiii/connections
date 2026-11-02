@@ -57,7 +57,9 @@ public class CloseServer implements Runnable {
                 }
 
                 //Chiude tutte le connessioni con i client
+                System.out.println("DEBUG: allClients: " + allClients);
                 for (ClientHandler client : allClients) {
+                    System.out.println("DEBUG: Chiusura: " + client);
                     client.closeConnection();
                 }
                 allClients.clear();

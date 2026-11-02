@@ -9,7 +9,9 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class StatsHelper {
+// Gestione dei messaggi di requestGameInfo e requestGameStats
+
+public class StatsRequestHelper {
 
     /*
     * validateID == -2 --> ID non corretto
@@ -82,10 +84,11 @@ public class StatsHelper {
     private static GameInfoResponse createGameInfoResponse(int targetId, String username,
                                                            ConcurrentHashMap<String, User> registeredUsers,
                                                            PlayerStatus status, GameTimeManager gameManager) {
+        // Richiesta riguardante partita corrente
         if (targetId == -1) {
             GameInfoResponse response = new GameInfoResponse("requestGameInfoResponse", "200", "Informazioni partita recuperate con successo");
             response.setGameID(gameManager.getGameID());
-
+            response.setCurrentGame(true);
             if (status != null) {
                 response.setWon(status.isWon());
                 response.setPoints(status.getScore());
@@ -100,11 +103,13 @@ public class StatsHelper {
         User currentUser = registeredUsers.get(username);
         UserMatchResult matchResult = (currentUser != null) ? currentUser.getMatchResult(targetId) : null;
 
+        // Richiesta riguardante partita passata
         if (matchResult == null) {
             return new GameInfoResponse("requestGameInfoResponse", "404", "Non hai partecipato alla partita " + targetId + " oppure i dati non sono disponibili.");
         }
 
         GameInfoResponse response = new GameInfoResponse("requestGameInfoResponse", "200", "Storico partita recuperato con successo");
+        response.setCurrentGame(false);
         response.setGameID(targetId);
         response.setWon(matchResult.isWon());
         response.setPoints(matchResult.getScore());

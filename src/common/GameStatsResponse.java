@@ -30,7 +30,7 @@ public class GameStatsResponse extends ResponseMessage {
         System.out.println("Persone che hanno concluso la partita: " + (this.gamesWon + this.gamesLost));
         System.out.println("Persone che hanno vinto la partita: " + this.gamesWon);
         if(this.gameEnded) {
-            System.out.println("Persone che hanno partecipato" + this.numberOfPlayers);
+            System.out.println("Persone che hanno partecipato: " + this.numberOfPlayers);
             System.out.println("Punteggio medio: " + this.averagePoints);
         }
     }
