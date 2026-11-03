@@ -6,7 +6,6 @@ import common.*;
 import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -71,8 +70,6 @@ public class ClientHandler implements Runnable {
                     case "logout": {
                         System.out.println("DEBUG: Logout: " + this.username);
                         if (this.playerStatus != null) {
-                            saveUserStats(this.gameTimeManager.getGameID());
-                            updateGameStats(this.gameTimeManager.getGameID());
                             this.playerStatus.setOnline(false);}
                         if (this.username != null) currentUsers.remove(this.username, this);
 
@@ -83,7 +80,7 @@ public class ClientHandler implements Runnable {
                         break;
                     }
                     case "submitProposal": {
-                        GameProposalHandler session = new GameProposalHandler(this.playerStatus, this.clientChannel.getInetAddress(), this.clientUDPport);
+                        GameProposalHelper session = new GameProposalHelper(this.playerStatus, this.clientChannel.getInetAddress(), this.clientUDPport);
                         session.handleProposalRequest(messageString,this,outputStream);
                         break;
                     }
@@ -99,43 +96,13 @@ public class ClientHandler implements Runnable {
                     }
                     case "requestLeaderboard":{
                         /*
-                        // 401 se non autenticato
-                        if (this.username == null || !currentUsers.containsKey(this.username)) {
-                            ResponseMessage response = new ResponseMessage(operation + "Response", "401", "Accesso non autorizzato");
-                            new SendTCPResponse(response, outputStream);
-                            break;
-                        }
-                        // 200 quando restituisci i dati richiesti
-                        String gameID = jsonObject.has("gameID") ? jsonObject.get("gameID").getAsString() : "";
-                        if(gameID.equals("current")) {
-                            ResponseMessage response = new ResponseMessage(operation + "Response", "200", "Dati recuperati con successo");
-                            new SendTCPResponse(response, outputStream);
-                            break;
-                        } else if (!gameID.isEmpty()) {
-                            ResponseMessage response = new ResponseMessage(operation + "Response", "200", "Dati recuperati con successo");
-                            new SendTCPResponse(response, outputStream);
-                            break;
-                        }
-                        */
+                        UserStatsHelper.handleLeaderboardRequest(this.username, this.currentUsers,
+                                this.registeredUsers, outputStream);
                         break;
+                        */
                     }
                     case "requestPlayerStats": {
-                        // 401 se non autenticato
-                        if (this.username == null || !currentUsers.containsKey(this.username)) {
-                            ResponseMessage response = new ResponseMessage(operation + "Response", "401", "Accesso non autorizzato");
-                            new SendTCPResponse(response, outputStream);
-                            break;
-                        }
-                        // 200 quando restituisci i dati richiesti
-                        ResponseMessage response = new ResponseMessage(operation + "Response", "200", "Dati recuperati con successo");
-                        new SendTCPResponse(response, outputStream);
-                        break;
-                    }
-
-                    default: {
-                        // 400: Comando non riconosciuto
-                        ResponseMessage response = new ResponseMessage("unknownResponse", "400", "Operazione non supportata");
-                        new SendTCPResponse(response, outputStream);
+                        UserStatsHelper.handlePlayerStatsRequest(this.username,this.gameTimeManager.getGameID(),this.currentUsers, this.registeredUsers, outputStream);
                         break;
                     }
                 }
@@ -149,7 +116,6 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    //AGGIUNGERE LA POSSIBILITà PER L'UTENTE DI SCEGLIERE SE RIMANERE LOGGATO O MENO
     public void MatchEnd() {
         int gameID = this.gameTimeManager.getGameID();
 
@@ -196,7 +162,7 @@ public class ClientHandler implements Runnable {
             user.resetStreak();
         }
         System.out.println("DEBUG: User aggiornato: " + this.username);
-        UserManager.saveUsers(registeredUsers);
+        UserSerializer.saveUsers(registeredUsers);
     }
 
     public void updateGameStats(int gameID){
@@ -206,8 +172,6 @@ public class ClientHandler implements Runnable {
     }
 
     public void closeConnection() {
-        saveUserStats(this.gameTimeManager.getGameID());
-        updateGameStats(this.gameTimeManager.getGameID());
         System.out.println("DEBUG: statistiche: " + this.username + " aggiornate");
         this.isRunning = false;
         try {

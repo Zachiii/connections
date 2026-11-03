@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import common.GameInfoResponse;
 import common.GameStatsResponse;
+import common.PlayerStatsResponse;
 import common.ResponseMessage;
 
 import java.io.IOException;
@@ -50,19 +51,22 @@ public class ResponseHandler {
             switch(responseMessage.getOperation()){
                 case "loginResponse": {
                     GameInfoResponse response = gson.fromJson(messageString, GameInfoResponse.class);
-                    if(responseMessage.getCode().equals("200")){
-                        response.printWordsLeft();
-                    }
+                    if(responseMessage.getCode().equals("200"))response.printWordsLeft();
                     break;
                 }
                 case "requestGameInfoResponse": {
                     GameInfoResponse response = gson.fromJson(messageString, GameInfoResponse.class);
-                    if(responseMessage.getCode().equals("200")){response.printGameInfo();}
+                    if(responseMessage.getCode().equals("200"))response.printGameInfo();
                     break;
                 }
                 case "requestGameStatsResponse": {
                     GameStatsResponse response = gson.fromJson(messageString, GameStatsResponse.class);
                     if(responseMessage.getCode().equals("200"))response.printGameStats();
+                    break;
+                }
+                case "requestPlayerStatsResponse": {
+                    PlayerStatsResponse response = gson.fromJson(messageString,PlayerStatsResponse.class);
+                    if(responseMessage.getCode().equals("200")) response.printPlayerStats();
                     break;
                 }
             }

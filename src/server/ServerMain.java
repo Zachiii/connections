@@ -12,30 +12,30 @@ import java.util.concurrent.Executors;
 
 public class ServerMain {
     static void main(String[] args) {
-        ServerProp serverProp = new ServerProp();
+        ServerPropReader serverPropReader = new ServerPropReader();
         //Coda che contiene tutte le connessioni tra ClientHandler ed il relativo client
         ConcurrentLinkedQueue<ClientHandler> allClients = new ConcurrentLinkedQueue<>();
         //HashMap generale degli utenti che hanno fatto la registrazione
-        ConcurrentHashMap<String, User> registeredUsers = UserManager.loadUsers();
+        ConcurrentHashMap<String, User> registeredUsers = UserSerializer.loadUsers();
         //HashMap degli utenti che hanno fatto il login
         ConcurrentHashMap<String,ClientHandler> currentUsers = new ConcurrentHashMap<>();
         //HashMap degli utenti che stanno giocando
         ConcurrentHashMap<String,PlayerStatus> activePlayers = ActiveMatchManager.loadActiveMatch();
         //HashMap di tutte le partite giocate
-        ConcurrentHashMap<String,GameStats>  gameStats = GameStatsManager.loadGameStats();
+        ConcurrentHashMap<String,GameStats>  gameStats = GameStatsSerializer.loadGameStats();
         //Mando matchDurationSeconds a un thread che si occuperà di far scorrere il tempo e di avvisare il server quando la partita sarà terminata
-        Long matchDurationSeconds = serverProp.getMatchTime();
-        int gameID = serverProp.getGameID();
+        Long matchDurationSeconds = serverPropReader.getMatchTime();
+        int gameID = serverPropReader.getGameID();
 
         //AVVIO GameManager
-        GameTimeManager gameTimeManager = new GameTimeManager(currentUsers,activePlayers,gameStats,serverProp,matchDurationSeconds,gameID,true);
+        GameTimeManager gameTimeManager = new GameTimeManager(currentUsers,activePlayers,gameStats, serverPropReader,matchDurationSeconds,gameID,true);
         Thread timerThread = new Thread(gameTimeManager);
         timerThread.start();
 
-        connectionStart(serverProp, allClients, registeredUsers, currentUsers, activePlayers, gameStats, gameTimeManager, timerThread);
+        connectionStart(serverPropReader, allClients, registeredUsers, currentUsers, activePlayers, gameStats, gameTimeManager, timerThread);
     }
     //creazione connesione
-    public static void connectionStart(ServerProp serverProp,
+    public static void connectionStart(ServerPropReader serverPropReader,
                                        ConcurrentLinkedQueue<ClientHandler> allClients,
                                        ConcurrentHashMap<String, User> registeredUsers,
                                        ConcurrentHashMap<String, ClientHandler> currentUsers,
@@ -43,8 +43,8 @@ public class ServerMain {
                                        ConcurrentHashMap<String,GameStats> gameStats,
                                        GameTimeManager gameTimeManager,
                                        Thread timerThread) {
-        int port = serverProp.getPort();
-        InetAddress inetAddress = serverProp.getHost();
+        int port = serverPropReader.getPort();
+        InetAddress inetAddress = serverPropReader.getHost();
 
         ExecutorService pool = Executors.newCachedThreadPool();
 

@@ -1,7 +1,6 @@
 package server;
 
 import com.google.gson.Gson;
-import common.Message;
 import common.ProposalMessage;
 import common.ResponseMessage;
 import java.io.DataOutputStream;
@@ -9,12 +8,12 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.util.ArrayList;
 
-public class GameProposalHandler {
+public class GameProposalHelper {
     private PlayerStatus playerStatus;
     private InetAddress clientAddr;
     private int clientUdpPort;
 
-    public GameProposalHandler(PlayerStatus playerStatus, InetAddress clientAddr, int clientUdpPort) {
+    public GameProposalHelper(PlayerStatus playerStatus, InetAddress clientAddr, int clientUdpPort) {
         this.playerStatus = playerStatus;
         this.clientAddr = clientAddr;
         this.clientUdpPort = clientUdpPort;

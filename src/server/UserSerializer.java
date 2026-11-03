@@ -15,49 +15,51 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.concurrent.ConcurrentHashMap;
 
-// Serializzazione di gameStats
+// Serializzazione di registeredUsers
 
-public class GameStatsManager {
-    private static final String TARGET_PATH = "src/server/gamestats.json";
-    private static final String TEMP_PATH   = "src/server/gamestats_temp.json";
+public class UserSerializer {
+
+    private static final String TARGET_PATH = "src/server/users.json";
+    private static final String TEMP_PATH   = "src/server/users_temp.json";
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     // Caricamento all'avvio del server
-    public static ConcurrentHashMap<String, GameStats> loadGameStats() {
+    public static ConcurrentHashMap<String, User> loadUsers() {
         File file = new File(TARGET_PATH);
         if (!file.exists()) {
             return new ConcurrentHashMap<>();
         }
 
         try (FileReader reader = new FileReader(file)) {
-            Type type = new TypeToken<ConcurrentHashMap<String, GameStats>>() {}.getType();
-            ConcurrentHashMap<String, GameStats> stats = gson.fromJson(reader, type);
-            return (stats != null) ? stats : new ConcurrentHashMap<>();
+            Type type = new TypeToken<ConcurrentHashMap<String, User>>() {}.getType();
+            ConcurrentHashMap<String, User> users = gson.fromJson(reader, type);
+            return (users != null) ? users : new ConcurrentHashMap<>();
         } catch (IOException e) {
-            System.err.println("Errore caricamento statistiche partite: " + e.getMessage());
+            System.err.println("Errore durante il caricamento di users.json: " + e.getMessage());
             return new ConcurrentHashMap<>();
         }
     }
 
-    // Salvataggio atomico e sincronizzato
-    public static synchronized void saveGameStats(ConcurrentHashMap<String, GameStats> stats) {
+    public static synchronized void saveUsers(ConcurrentHashMap<String, User> users) {
         Path tempFile = Paths.get(TEMP_PATH);
         Path targetFile = Paths.get(TARGET_PATH);
 
         try (FileWriter writer = new FileWriter(tempFile.toFile())) {
-            gson.toJson(stats, writer);
+            gson.toJson(users, writer);
         } catch (IOException e) {
-            System.err.println("Errore scrittura file temporaneo game stats: " + e.getMessage());
+            System.err.println("Errore durante la scrittura del file temporaneo: " + e.getMessage());
             return;
         }
 
+        // 2. Sostituzione atomica del file originale
         try {
             Files.move(tempFile, targetFile, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
+            // Fallback: se il file system non supporta ATOMIC_MOVE (es. tra partizioni diverse), usa la copia standard
             try {
                 Files.move(tempFile, targetFile, StandardCopyOption.REPLACE_EXISTING);
             } catch (IOException ex) {
-                System.err.println("Errore sostituzione atomica gamestats.json: " + ex.getMessage());
+                System.err.println("Errore critico durante la sostituzione atomica di users.json: " + ex.getMessage());
             }
         }
     }

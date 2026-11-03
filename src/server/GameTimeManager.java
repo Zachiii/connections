@@ -10,13 +10,13 @@ public class GameTimeManager implements Runnable {
     private volatile long startTimeMillis;
     private int gameID;
     private volatile boolean isRunning;
-    private volatile GameSupport currentGame;
-    ServerProp serverProp;
+    private volatile GameWordsRandomizer currentGame;
+    ServerPropReader serverPropReader;
     public GameTimeManager(
             ConcurrentHashMap<String,ClientHandler> currentUsers,
             ConcurrentHashMap<String,PlayerStatus> activePlayers,
             ConcurrentHashMap<String,GameStats> gameStats,
-            ServerProp serverProp,
+            ServerPropReader serverPropReader,
             Long matchDurationSeconds,
             int gameID,
             boolean isRunning) {
@@ -25,11 +25,11 @@ public class GameTimeManager implements Runnable {
         this.gameID = gameID;
         this.isRunning = isRunning;
         this.activePlayers = activePlayers;
-        this.serverProp = serverProp;
+        this.serverPropReader = serverPropReader;
         this.gameStats = gameStats;
     }
 
-    public GameSupport getCurrentGame() {
+    public GameWordsRandomizer getCurrentGame() {
         return this.currentGame;
     }
     public int getGameID() {return this.gameID;}
@@ -68,7 +68,7 @@ public class GameTimeManager implements Runnable {
             }
             if (!isRunning) break;
             //manda segnale UDP fine partita
-            GameStatsManager.saveGameStats(this.gameStats);
+            GameStatsSerializer.saveGameStats(this.gameStats);
             System.out.println("DEBUG: Tempo partita: " + gameID + " finito");
             for(ClientHandler clientHandler : currentUsers.values()){
                 clientHandler.MatchEnd();
@@ -76,7 +76,7 @@ public class GameTimeManager implements Runnable {
             activePlayers.clear();  //Pulisco la lista di giocatori attivi
             ActiveMatchManager.clearActiveMatch();
             gameID++;
-            this.serverProp.updateGameID();
+            this.serverPropReader.updateGameID();
         }
     }
     public long getRemainingTimeSeconds() {

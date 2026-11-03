@@ -12,8 +12,8 @@ public class User {
     private int gamesLost;
     private int points;
     private int puzzlesCompleted;       //per definizione qualsiasi puzzle giocato
-    private int winRate;
-    private int lossRate;
+    private double winRate;
+    private double lossRate;
     private int currentStreak;
     private int maxStreak;
     private int perfectPuzzles;
@@ -46,13 +46,7 @@ public class User {
         return playerHistory;
     }
 
-    // --------- METODI GENERALI PER LA GESTIONE DELL'UTENTE ---------
-    public String getUsername() {
-        return username;
-    }
-    public String getPassword() {
-        return password;
-    }
+    // --------- SETTER ---------
     public void updateCredentials(String username,String password) {
         if(!username.isEmpty())this.username = username;
         if(!password.isEmpty())this.password = password;
@@ -61,8 +55,8 @@ public class User {
         this.puzzlesCompleted++;
         this.points += points;
         if(points == 18) perfectPuzzles++;
-        if(this.gamesWon != 0)this.winRate = this.puzzlesCompleted / this.gamesWon;
-        if(this.gamesLost != 0)this.lossRate = this.winRate / this.gamesLost;
+        if(this.puzzlesCompleted != 0)this.winRate = (double) (gamesWon * 100) / puzzlesCompleted;
+        if(this.puzzlesCompleted != 0)this.lossRate = (double) (gamesLost * 100) / puzzlesCompleted;
     }
     public void addStreak(){
         this.currentStreak++;
@@ -73,5 +67,21 @@ public class User {
         this.currentStreak = 0;
         this.gamesLost++;
     }
+
+    // --------- GETTER ---------
+    public String getUsername() {
+        return username;
+    }
+    public String getPassword() {
+        return password;
+    }
     public int getPoints() {return this.points;}
+    public double getWinRate() {return this.winRate;}
+    public double getLossRate() {return this.lossRate;}
+    public int getGamesWon() {return this.gamesWon;}
+    public int getGamesLost() {return this.gamesLost;}
+    public int getPuzzlesCompleted() {return this.puzzlesCompleted;}
+    public int getCurrentStreak() {return this.currentStreak;}
+    public int getMaxStreak() {return this.maxStreak;}
+    public int getPerfectPuzzles() {return this.perfectPuzzles;}
 }

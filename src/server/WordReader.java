@@ -9,11 +9,11 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 public class WordReader {
-    private static List<GameSupport> allGames;
+    private static List<GameWordsRandomizer> allGames;
     ConcurrentHashMap<String,ClientHandler> currentUsers;
     public WordReader(){
         Gson gson = new Gson();
-        Type listType = new TypeToken<List<GameSupport>>() {}.getType();
+        Type listType = new TypeToken<List<GameWordsRandomizer>>() {}.getType();
         try (FileReader reader = new FileReader("src/server/Connections_Data.json")) {
             allGames = gson.fromJson(reader, listType);
         } catch (IOException e) {
@@ -21,7 +21,7 @@ public class WordReader {
         }
     }
     // Ritorna la singola partita dato il gameID
-    public static GameSupport getGame(int gameId) {
+    public static GameWordsRandomizer getGame(int gameId) {
         if (allGames != null && gameId >= 0 && gameId < allGames.size()) {
             return allGames.get(gameId);
         }

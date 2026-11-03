@@ -27,7 +27,7 @@ public class AuthHelper {
         }
 
         if (registeredUsers.putIfAbsent(message.getUsername(), new User(message.getUsername(), message.getPsw())) == null) {
-            UserManager.saveUsers(registeredUsers);
+            UserSerializer.saveUsers(registeredUsers);
             client.setUsername(message.getUsername().trim());
             System.out.println("DEBUG: Registrazione effettuata: " + message.getUsername().trim());
             new SendTCPResponse(new ResponseMessage("registerResponse", "200", "Registrazione completata"), out);
@@ -81,7 +81,7 @@ public class AuthHelper {
         } else {
             // Primo login quindi devo popolare anche PlayerStatus che va a gestire le statistiche del giocatore durante la partita
             client.playerStatus = new PlayerStatus(username, true);
-            GameSupport activeGame = gameManager.getCurrentGame();
+            GameWordsRandomizer activeGame = gameManager.getCurrentGame();
             if (activeGame != null) {
                 client.playerStatus.setWordsLeft(activeGame.getShuffledWords());
                 client.playerStatus.setGroupWords(activeGame.getGroupWords());
@@ -145,7 +145,7 @@ public class AuthHelper {
             currentUsers.put(currentUser.getUsername(), client);
             client.setUsername(currentUser.getUsername());
         }
-        UserManager.saveUsers(registeredUsers);
+        UserSerializer.saveUsers(registeredUsers);
 
         System.out.println("DEBUG: Credenziali aggiornate per " + currentUser.getUsername());
         new SendTCPResponse(new ResponseMessage("updateCredentialsResponse", "200", "Credenziali aggiornate con successo"), out);
