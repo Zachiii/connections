@@ -133,6 +133,7 @@ public class StatsRequestHelper {
         response.setGameEnded(!isCurrent);
         response.setGamesWon(stats.getGamesWon());
         response.setGamesLost(stats.getGamesLost());
+        System.out.println("players: " + stats.getNumberOfPlayers());
         response.setNumberOfPlayers(stats.getNumberOfPlayers());
         response.setTimeLeft(gameManager.getRemainingTimeSeconds());
 

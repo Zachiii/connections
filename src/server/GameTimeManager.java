@@ -41,7 +41,7 @@ public class GameTimeManager implements Runnable {
         while (isRunning && gameID < 900){
             //inizia partita
             GameStats currentGame = new GameStats(this);
-            this.gameStats.put(String.valueOf(gameID),currentGame);
+            this.gameStats.putIfAbsent(String.valueOf(gameID), currentGame);
             WordReader wordReader = new WordReader();
             this.currentGame = WordReader.getGame(gameID);
             System.out.println("[SERVER] Partita caricata: " + this.currentGame.getGroupWords());
@@ -59,6 +59,7 @@ public class GameTimeManager implements Runnable {
                         currentStats.setNumberOfPlayers();
                     }
                 }
+                GameStatsSerializer.saveGameStats(this.gameStats);
             }
             this.startTimeMillis = System.currentTimeMillis();
             try {
