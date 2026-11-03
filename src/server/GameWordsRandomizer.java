@@ -23,7 +23,7 @@ public class GameWordsRandomizer {
         for (GroupSupport group : groups) {
             allWords.addAll(group.getWords());
         }
-        Collections.shuffle(allWords); // Il testo specifica che le parole vanno inviate in ordine casuale
+        Collections.shuffle(allWords);
         return allWords;
     }
 

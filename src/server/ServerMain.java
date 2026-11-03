@@ -49,7 +49,7 @@ public class ServerMain {
         ExecutorService pool = Executors.newCachedThreadPool();
 
         try (ServerSocket serverSocket = new ServerSocket(port, 10, inetAddress)) {
-            System.out.println("DEBUG: Server in ascolto su questo indirizzo: " + serverSocket.getLocalSocketAddress());
+            System.out.println("[SERVER] Server in ascolto su questo indirizzo: " + serverSocket.getLocalSocketAddress());
 
             // AVVIO DEL THREAD DI SPEGNIMENTO DEDICATO
             CloseServer closeServerTask = new CloseServer(serverSocket, pool, gameTimeManager, gameStats, timerThread, allClients, registeredUsers, currentUsers, activePlayers);
@@ -60,16 +60,16 @@ public class ServerMain {
             while (!serverSocket.isClosed()) {
                 try {
                     Socket clientSocket = serverSocket.accept();
-                    System.out.println("DEBUG: Connessione da: " + clientSocket.getRemoteSocketAddress());
+                    System.out.println("[SERVER] Connessione da: " + clientSocket.getRemoteSocketAddress());
                     pool.execute(new ClientHandler(clientSocket, allClients, registeredUsers, currentUsers, activePlayers,gameStats, gameTimeManager));
                 } catch (SocketException e) {
                     // La ServerSocket è stata chiusa da CloseServer: uscita normale dal loop
-                    System.out.println("DEBUG: ServerSocket chiusa, terminazione ciclo di accept.");
+                    System.out.println("[SERVER] ServerSocket chiusa, terminazione ciclo di accept.");
                     break;
                 }
             }
         } catch (IOException e) {
-            System.out.println("DEBUG: Errore in ServerMain: " + e.getMessage());
+            System.err.println("[SERVER] Errore in ServerMain: " + e.getMessage());
         } finally {
             pool.shutdown();
         }

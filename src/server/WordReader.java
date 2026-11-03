@@ -17,7 +17,7 @@ public class WordReader {
         try (FileReader reader = new FileReader("src/server/Connections_Data.json")) {
             allGames = gson.fromJson(reader, listType);
         } catch (IOException e) {
-            System.err.println("Errore caricamento partite: " + e.getMessage());
+            System.err.println("[SERVER] Errore caricamento partite: " + e.getMessage());
         }
     }
     // Ritorna la singola partita dato il gameID

@@ -18,16 +18,16 @@ public class ServerPropReader {
             this.matchTime = prop.getProperty("matchTime");
             this.gameID = Integer.parseInt(prop.getProperty("gameID"));
         } catch (FileNotFoundException e) {
-            System.out.println("File not found");
+            System.err.println("[SERVER] File not found");
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("[SERVER] Errore di I/O: " + e.getMessage());
         }
     }
     public InetAddress getHost() {
         try{
             return InetAddress.getByName(host);
         }catch (Exception e){
-            System.out.println("Host not found");
+            System.err.println("[SERVER] Host not found");
         }
         return null;
     }
@@ -37,7 +37,7 @@ public class ServerPropReader {
         try (FileReader reader = new FileReader(configFile)) {
             prop.load(reader);
         } catch (IOException e) {
-            System.err.println("Errore nella lettura del file properties: " + e.getMessage());
+            System.err.println("[SERVER] Errore nella lettura del file properties: " + e.getMessage());
             return;
         }
         int gameID = Integer.parseInt(prop.getProperty("gameID", "0"));
@@ -47,7 +47,7 @@ public class ServerPropReader {
         try (FileWriter writer = new FileWriter(configFile)) {
             prop.store(writer, null);
         } catch (IOException e) {
-            System.err.println("Errore nella scrittura del file properties: " + e.getMessage());
+            System.err.println("[SERVER] Errore nella scrittura del file properties: " + e.getMessage());
         }
     }
     public int getPort() {

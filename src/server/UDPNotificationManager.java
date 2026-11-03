@@ -24,7 +24,7 @@ public class UDPNotificationManager {
         try (DatagramSocket socket = new DatagramSocket()) {
             socket.send(packet);
         } catch (IOException e) {
-            System.err.println("Errore invio UDP: " + e.getMessage());
+            System.err.println("[SERVER] Errore invio UDP: " + e.getMessage());
         }
     }
 }

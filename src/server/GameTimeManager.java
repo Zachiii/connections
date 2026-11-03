@@ -37,14 +37,14 @@ public class GameTimeManager implements Runnable {
 
     @Override
     public void run() {
-        System.out.println("DEBUG: Timer partito");
+        System.out.println("[SERVER] Timer partito");
         while (isRunning && gameID < 900){
             //inizia partita
             GameStats currentGame = new GameStats(this);
             this.gameStats.put(String.valueOf(gameID),currentGame);
             WordReader wordReader = new WordReader();
             this.currentGame = WordReader.getGame(gameID);
-            System.out.println("DEBUG: Partita caricata: " + this.currentGame.getGroupWords());
+            System.out.println("[SERVER] Partita caricata: " + this.currentGame.getGroupWords());
             if(this.currentGame != null){
                 for(ClientHandler client: this.currentUsers.values()){
                     String username = client.getUsername();
@@ -66,14 +66,14 @@ public class GameTimeManager implements Runnable {
             } catch (InterruptedException e) {
                 // Se il thread viene interrotto durante lo spegnimento, esci dal ciclo
                 if (!isRunning) {
-                    System.out.println("DEBUG: GameManager interrotto per spegnimento.");
+                    System.out.println("[SERVER] GameManager interrotto per spegnimento.");
                     break;
                 }
             }
             if (!isRunning) break;
             //manda segnale UDP fine partita
             GameStatsSerializer.saveGameStats(this.gameStats);
-            System.out.println("DEBUG: Tempo partita: " + gameID + " finito");
+            System.out.println("[SERVER] Tempo partita: " + gameID + " finito");
             for(ClientHandler clientHandler : currentUsers.values()){
                 clientHandler.MatchEnd();
             }

@@ -39,7 +39,7 @@ public class PlayerStatus {
     //Setta la lista di parole da indovinare
     public void setWordsLeft(ArrayList<String> wordsLeft) {
         this.wordsLeft = new ArrayList<>(wordsLeft);
-        System.out.println("DEBUG: wordsLeft: " + this.wordsLeft);
+        System.out.println("[SERVER] wordsLeft: " + this.wordsLeft);
     }
 
     public void setScore() {
@@ -69,7 +69,7 @@ public class PlayerStatus {
 
     //Controllo delle proposte fatte dall'utente
     public String removeWordsGuessed(ArrayList<String> wordsGuessed) {
-        System.out.println("DEBUG: wordsGuessed: " + wordsGuessed);
+        System.out.println("[SERVER] wordsGuessed: " + wordsGuessed);
         if (wordsGuessed == null || wordsGuessed.size() != 4 || !this.wordsLeft.containsAll(wordsGuessed)) {
             return "MALFORMED"; // Proposta non valida: non toglie vite né punti
         }
@@ -90,7 +90,7 @@ public class PlayerStatus {
                             break;
                         }
                     }
-                    System.out.println("DEBUG: HashOfWordsGuessed: " + HashOfWordsGuessed);
+                    System.out.println("[SERVER] HashOfWordsGuessed: " + HashOfWordsGuessed);
                     this.groupsLeft--;
                     this.wordsLeft.clear();
                     this.gameEnded = true;

@@ -19,7 +19,7 @@ public class SendTCPResponse {
             outputStream.write(jsonMessageBytes);
             outputStream.flush();
         } catch(IOException e){
-            System.out.println("Errore durante scrittura risposta al client");
+            System.err.println("[SERVER] Errore durante scrittura risposta al client");
         }
     }
 }

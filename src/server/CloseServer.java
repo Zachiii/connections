@@ -44,7 +44,7 @@ public class CloseServer implements Runnable {
     @Override
     public void run() {
         Scanner scanner = new Scanner(System.in);
-        System.out.println("DEBUG: Digita 'exit' o 'stop' per arrestare il server.");
+        System.out.println("[SERVER] Digita 'exit' o 'stop' per arrestare il server.");
 
         while (true) {
             String line = scanner.nextLine().trim();
@@ -60,9 +60,8 @@ public class CloseServer implements Runnable {
                 }
 
                 //Chiude tutte le connessioni con i client
-                System.out.println("DEBUG: allClients: " + allClients);
                 for (ClientHandler client : allClients) {
-                    System.out.println("DEBUG: Chiusura: " + client);
+                    System.out.println("[SERVER] Chiusura: " + client);
                     client.closeConnection();
                 }
                 allClients.clear();
@@ -80,7 +79,7 @@ public class CloseServer implements Runnable {
                         serverSocket.close();
                     }
                 } catch (IOException e) {
-                    System.err.println("Errore chiusura ServerSocket: " + e.getMessage());
+                    System.err.println("[SERVER] Errore chiusura ServerSocket: " + e.getMessage());
                 }
 
                 //Chiusura del thread pool

@@ -68,7 +68,7 @@ public class ClientHandler implements Runnable {
                         break;
                     }
                     case "logout": {
-                        System.out.println("DEBUG: Logout: " + this.username);
+                        System.out.println("[SERVER] Logout: " + this.username);
                         if (this.playerStatus != null) {
                             this.playerStatus.setOnline(false);}
                         if (this.username != null) currentUsers.remove(this.username, this);
@@ -105,7 +105,7 @@ public class ClientHandler implements Runnable {
                 }
             }
         } catch (IOException e) {
-            System.out.println("Errore: client disconnesso in maniera anomala");
+            System.out.println("[SERVER] Errore: client disconnesso in maniera anomala");
         } finally {
             if (this.playerStatus != null) this.playerStatus.setOnline(false);
             if (this.username != null) currentUsers.remove(this.username, this);
@@ -123,7 +123,7 @@ public class ClientHandler implements Runnable {
         updateGameStats(gameID);
 
         //Creazione messaggio di EndGame
-        System.out.println("DEBUG: MatchEnd: " + this.username);
+        System.out.println("[SERVER] MatchEnd: " + this.username);
         GameEndResponse endGameMessage = new GameEndResponse("EndGame","200","GiocoFinito");
         endGameMessage.setGameID(gameID);
         endGameMessage.setTimeLeft(this.gameTimeManager.getRemainingTimeSeconds());
@@ -142,7 +142,6 @@ public class ClientHandler implements Runnable {
     }
 
     public void saveUserStats(int gameID){
-        this.playerStatus.setScore();
         User user = this.registeredUsers.get(this.username);
         user.setPoints(this.playerStatus.getScore());
         UserMatchResult matchResult = new UserMatchResult(
@@ -158,7 +157,8 @@ public class ClientHandler implements Runnable {
         } else if (this.playerStatus.isWon() == -1) {
             user.resetStreak();
         }
-        System.out.println("DEBUG: User aggiornato: " + this.username);
+        this.playerStatus.setScore();
+        System.out.println("[SERVER] User aggiornato: " + this.username);
         UserSerializer.saveUsers(registeredUsers);
     }
 
@@ -166,10 +166,10 @@ public class ClientHandler implements Runnable {
         this.gameStats.get(String.valueOf(gameID)).setTotalPoints(this.playerStatus.getScore());
         if(this.playerStatus.isWon() == -1){this.gameStats.get(String.valueOf(gameID)).setGamesLost();}
         else if(this.playerStatus.isWon() == 1){this.gameStats.get(String.valueOf(gameID)).setGamesWon();}
+        GameStatsSerializer.saveGameStats(this.gameStats);
     }
 
     public void closeConnection() {
-        System.out.println("DEBUG: statistiche: " + this.username + " aggiornate");
         this.isRunning = false;
         try {
             if (this.clientChannel != null && !this.clientChannel.isClosed()) {

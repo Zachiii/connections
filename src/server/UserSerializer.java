@@ -35,7 +35,7 @@ public class UserSerializer {
             ConcurrentHashMap<String, User> users = gson.fromJson(reader, type);
             return (users != null) ? users : new ConcurrentHashMap<>();
         } catch (IOException e) {
-            System.err.println("Errore durante il caricamento di users.json: " + e.getMessage());
+            System.err.println("[SERVER] Errore durante il caricamento di users.json: " + e.getMessage());
             return new ConcurrentHashMap<>();
         }
     }
@@ -47,7 +47,7 @@ public class UserSerializer {
         try (FileWriter writer = new FileWriter(tempFile.toFile())) {
             gson.toJson(users, writer);
         } catch (IOException e) {
-            System.err.println("Errore durante la scrittura del file temporaneo: " + e.getMessage());
+            System.err.println("[SERVER] Errore durante la scrittura del file temporaneo users temp: " + e.getMessage());
             return;
         }
 
@@ -59,7 +59,7 @@ public class UserSerializer {
             try {
                 Files.move(tempFile, targetFile, StandardCopyOption.REPLACE_EXISTING);
             } catch (IOException ex) {
-                System.err.println("Errore critico durante la sostituzione atomica di users.json: " + ex.getMessage());
+                System.err.println("[SERVER] Errore critico durante la sostituzione atomica di users.json: " + ex.getMessage());
             }
         }
     }

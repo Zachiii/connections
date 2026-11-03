@@ -55,8 +55,8 @@ public class User {
         this.puzzlesCompleted++;
         this.points += points;
         if(points == 18) perfectPuzzles++;
-        if(this.puzzlesCompleted != 0)this.winRate = (double) (gamesWon * 100) / puzzlesCompleted;
-        if(this.puzzlesCompleted != 0)this.lossRate = (double) (gamesLost * 100) / puzzlesCompleted;
+        if(this.puzzlesCompleted != 0)this.winRate = (double) (this.gamesWon * 100) / this.puzzlesCompleted;
+        if(this.puzzlesCompleted != 0)this.lossRate = (double) (this.gamesLost * 100) / this.puzzlesCompleted;
     }
     public void addStreak(){
         this.currentStreak++;

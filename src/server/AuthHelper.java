@@ -29,7 +29,7 @@ public class AuthHelper {
         if (registeredUsers.putIfAbsent(message.getUsername(), new User(message.getUsername(), message.getPsw())) == null) {
             UserSerializer.saveUsers(registeredUsers);
             client.setUsername(message.getUsername().trim());
-            System.out.println("DEBUG: Registrazione effettuata: " + message.getUsername().trim());
+            System.out.println("[SERVER] Registrazione effettuata: " + message.getUsername().trim());
             new SendTCPResponse(new ResponseMessage("registerResponse", "200", "Registrazione completata"), out);
         } else {
             new SendTCPResponse(new ResponseMessage("registerResponse", "409", "Username già registrato"), out);
@@ -88,6 +88,7 @@ public class AuthHelper {
             }
             client.playerStatus.setOnline(true);
             gameStats.get(String.valueOf(gameManager.getGameID())).setNumberOfPlayers();
+            GameStatsSerializer.saveGameStats(gameStats);
             activePlayers.put(username, client.playerStatus);
         }
 
@@ -95,7 +96,7 @@ public class AuthHelper {
         response.setWon(client.playerStatus.isWon());
         response.setWordsLeft(client.playerStatus.getWordsLeft());
         new SendTCPResponse(response, out);
-        System.out.println("DEBUG: Login effettuato: " + username);
+        System.out.println("[SERVER] Login effettuato: " + username);
     }
 
     public static void handleUpdateCredentials(String jsonMessage, ClientHandler client,
@@ -147,7 +148,7 @@ public class AuthHelper {
         }
         UserSerializer.saveUsers(registeredUsers);
 
-        System.out.println("DEBUG: Credenziali aggiornate per " + currentUser.getUsername());
+        System.out.println("[SERVER] Credenziali aggiornate per " + currentUser.getUsername());
         new SendTCPResponse(new ResponseMessage("updateCredentialsResponse", "200", "Credenziali aggiornate con successo"), out);
     }
 }

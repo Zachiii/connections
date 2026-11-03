@@ -34,7 +34,7 @@ public class GameStatsSerializer {
             ConcurrentHashMap<String, GameStats> stats = gson.fromJson(reader, type);
             return (stats != null) ? stats : new ConcurrentHashMap<>();
         } catch (IOException e) {
-            System.err.println("Errore caricamento statistiche partite: " + e.getMessage());
+            System.err.println("[SERVER] Errore caricamento statistiche partite: " + e.getMessage());
             return new ConcurrentHashMap<>();
         }
     }
@@ -47,7 +47,7 @@ public class GameStatsSerializer {
         try (FileWriter writer = new FileWriter(tempFile.toFile())) {
             gson.toJson(stats, writer);
         } catch (IOException e) {
-            System.err.println("Errore scrittura file temporaneo game stats: " + e.getMessage());
+            System.err.println("[SERVER] Errore scrittura file temporaneo game stats: " + e.getMessage());
             return;
         }
 
@@ -57,7 +57,7 @@ public class GameStatsSerializer {
             try {
                 Files.move(tempFile, targetFile, StandardCopyOption.REPLACE_EXISTING);
             } catch (IOException ex) {
-                System.err.println("Errore sostituzione atomica gamestats.json: " + ex.getMessage());
+                System.err.println("[SERVER] Errore sostituzione atomica gamestats.json: " + ex.getMessage());
             }
         }
     }

@@ -34,7 +34,7 @@ public class ActiveMatchManager {
             ConcurrentHashMap<String, PlayerStatus> activePlayers = gson.fromJson(reader, type);
             return (activePlayers != null) ? activePlayers : new ConcurrentHashMap<>();
         } catch (IOException e) {
-            System.err.println("Errore caricamento stato partita in corso: " + e.getMessage());
+            System.err.println("[SERVER] Errore caricamento stato partita in corso: " + e.getMessage());
             return new ConcurrentHashMap<>();
         }
     }
@@ -52,7 +52,7 @@ public class ActiveMatchManager {
         try (FileWriter writer = new FileWriter(tempFile.toFile())) {
             gson.toJson(activePlayers, writer);
         } catch (IOException e) {
-            System.err.println("Errore scrittura file temporaneo active_match: " + e.getMessage());
+            System.err.println("[SERVER] Errore scrittura file temporaneo active_match: " + e.getMessage());
             return;
         }
 
@@ -62,7 +62,7 @@ public class ActiveMatchManager {
             try {
                 Files.move(tempFile, targetFile, StandardCopyOption.REPLACE_EXISTING);
             } catch (IOException ex) {
-                System.err.println("Errore sostituzione atomica active_match.json: " + ex.getMessage());
+                System.err.println("[SERVER] Errore sostituzione atomica active_match.json: " + ex.getMessage());
             }
         }
     }
