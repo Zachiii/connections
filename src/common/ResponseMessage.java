@@ -15,5 +15,4 @@ public class ResponseMessage extends Message {
     public String getResponse(){return this.response;}
     public String getCode() {return this.code;}
 
-    // -------------- METODO per il login --------------
 }

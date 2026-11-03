@@ -3,10 +3,7 @@ package client;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import common.GameInfoResponse;
-import common.GameStatsResponse;
-import common.PlayerStatsResponse;
-import common.ResponseMessage;
+import common.*;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -67,6 +64,11 @@ public class ResponseHandler {
                 case "requestPlayerStatsResponse": {
                     PlayerStatsResponse response = gson.fromJson(messageString,PlayerStatsResponse.class);
                     if(responseMessage.getCode().equals("200")) response.printPlayerStats();
+                    break;
+                }
+                case "requestLeaderboardResponse":{
+                    LeaderboardResponse response = gson.fromJson(messageString,LeaderboardResponse.class);
+                    if(responseMessage.getCode().equals("200")) response.printLeaderBoard();
                     break;
                 }
             }

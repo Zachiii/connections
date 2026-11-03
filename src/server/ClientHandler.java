@@ -95,11 +95,8 @@ public class ClientHandler implements Runnable {
                         break;
                     }
                     case "requestLeaderboard":{
-                        /*
-                        UserStatsHelper.handleLeaderboardRequest(this.username, this.currentUsers,
-                                this.registeredUsers, outputStream);
+                        UserStatsHelper.handleLeaderboardRequest(messageString, this.username, this.currentUsers, this.registeredUsers, outputStream);
                         break;
-                        */
                     }
                     case "requestPlayerStats": {
                         UserStatsHelper.handlePlayerStatsRequest(this.username,this.gameTimeManager.getGameID(),this.currentUsers, this.registeredUsers, outputStream);

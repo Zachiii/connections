@@ -54,6 +54,10 @@ public class GameTimeManager implements Runnable {
                     newStatus.setWordsLeft(this.currentGame.getShuffledWords());
                     client.playerStatus = newStatus;
                     this.activePlayers.put(username,newStatus);
+                    GameStats currentStats = this.gameStats.get(String.valueOf(this.gameID));
+                    if (currentStats != null) {
+                        currentStats.setNumberOfPlayers();
+                    }
                 }
             }
             this.startTimeMillis = System.currentTimeMillis();

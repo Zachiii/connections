@@ -106,11 +106,9 @@ public class InputHandler {
                     break;
                 }
                 case "requestLeaderboard": {
-                    System.out.print("Username: ");
-                    String username = scanner.nextLine().trim();
-                    System.out.print("Se vuoi la lista completa dei giocatori scrivi -1, se vuoi il ranking relativo scrivi 0, se vuoi la top K utenti scrivi un numero maggiore di 0: ");
-                    String topPlayers = scanner.nextLine().trim();
-                    LeaderboardMessage message = new LeaderboardMessage(operation,username, topPlayers);
+                    System.out.print("Se vuoi la lista completa dei giocatori scrivi 'total', se vuoi la top K utenti scrivi un numero maggiore di 0, se vuoi la posizione specifica di un giocatore scrivi il suo nome: ");
+                    String metodoDistampa = scanner.nextLine().trim();
+                    LeaderboardMessage message = new LeaderboardMessage(operation, metodoDistampa);
                     new SendMessage(this.channel,message);
                     if (!new ResponseHandler(this.channel).isSuccess()) done = true;
                     break;
@@ -131,7 +129,7 @@ public class InputHandler {
                             " - Scrivere requestGameInfo per ricevere lo stato e le parole di una partita (in corso o conclusa per ID)\n" +
                             " - Scrivere requestGameStat per ricevere le statistiche di una partita (in corso o conclusa per ID)\n" +
                             " - Scrivere requestPlayerStats per consultare le proprie statistiche storiche di gioco \n" +
-                            " - Scrivere requestLeaderboard per ricevere la classifica globale, la top-K o la propria posizione (Da implementare)\n");
+                            " - Scrivere requestLeaderboard per ricevere la classifica globale, la top-K o la propria posizione\n");
                     break;
                 }
                 default: {

@@ -1,11 +1,9 @@
 package common;
 
 public class LeaderboardMessage extends Message {
-    String username;
-    int topPlayers;
-    public LeaderboardMessage(String operation,String username, String topPlayers) {
+    String metodoDistampa;
+    public LeaderboardMessage(String operation,String metodoDistampa) {
         super(operation);
-        this.username = username;
-        this.topPlayers = Integer.parseInt(topPlayers);
+        this.metodoDistampa = metodoDistampa;
     }
 }

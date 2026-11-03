@@ -1,10 +1,14 @@
 package server;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import common.LeaderboardResponse;
 import common.PlayerStatsResponse;
 import common.ResponseMessage;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -63,32 +67,57 @@ public class UserStatsHelper {
         new SendTCPResponse(response, out);
     }
 
-    /*
-    public static void handleLeaderboardRequest(String username,
+    public static void handleLeaderboardRequest(String messageString,
+                                                String username,
                                                 ConcurrentHashMap<String, ClientHandler> currentUsers,
                                                 ConcurrentHashMap<String, User> registeredUsers,
                                                 DataOutputStream out) throws IOException {
-        // 401 se non autenticato
         if (username == null || !currentUsers.containsKey(username)) {
             new SendTCPResponse(new ResponseMessage("requestLeaderboardResponse", "401", "Accesso non autorizzato. Effettua il login."), out);
             return;
         }
 
-        // Ordinamento degli utenti in RAM per punteggio decrescente
+        // Parsing del parametro metodoDistampa
+        JsonObject jsonObject = JsonParser.parseString(messageString).getAsJsonObject();
+        String metodoDistampa = jsonObject.has("metodoDistampa") ? jsonObject.get("metodoDistampa").getAsString() : "total";
+
         List<User> sortedUsers = registeredUsers.values().stream()
                 .sorted((u1, u2) -> Integer.compare(u2.getPoints(), u1.getPoints()))
                 .toList();
 
-        // Costruzione della lista di entry (es. username e punti) e recupero posizione
-        List<LeaderboardEntry> leaderboard = new ArrayList<>();
+        List<LeaderBoardEntry> leaderboard = new ArrayList<>();
         int userRank = -1;
 
+        // Calcolo preliminare della posizione dell'utente richiedente (serve sempre)
         for (int i = 0; i < sortedUsers.size(); i++) {
-            User u = sortedUsers.get(i);
-            int rank = i + 1;
-            leaderboard.add(new LeaderboardEntry(rank, u.getUsername(), u.getPoints()));
-            if (u.getUsername().equals(username)) {
-                userRank = rank;
+            if (sortedUsers.get(i).getUsername().equals(username)) {
+                userRank = i + 1;
+                break;
+            }
+        }
+
+        if (metodoDistampa.equalsIgnoreCase("total")) {
+            for (int i = 0; i < sortedUsers.size(); i++) {
+                User u = sortedUsers.get(i);
+                leaderboard.add(new LeaderBoardEntry(i + 1, u.getPoints(), u.getUsername()));
+            }
+        } else {
+            try {
+                // Caso Top K
+                int k = Integer.parseInt(metodoDistampa);
+                for (int i = 0; i < Math.min(k, sortedUsers.size()); i++) {
+                    User u = sortedUsers.get(i);
+                    leaderboard.add(new LeaderBoardEntry(i + 1, u.getPoints(), u.getUsername()));
+                }
+            } catch (NumberFormatException e) {
+                // Caso utente specifico
+                for (int i = 0; i < sortedUsers.size(); i++) {
+                    User u = sortedUsers.get(i);
+                    if (u.getUsername().equals(metodoDistampa)) {
+                        leaderboard.add(new LeaderBoardEntry(i + 1, u.getPoints(), u.getUsername()));
+                        break;
+                    }
+                }
             }
         }
 
@@ -98,5 +127,4 @@ public class UserStatsHelper {
 
         new SendTCPResponse(response, out);
     }
-    */
 }
