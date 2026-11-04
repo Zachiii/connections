@@ -113,7 +113,7 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    public void MatchEnd() {
+    public void MatchEnd(boolean fromGameTimeManager) {
         int gameID = this.gameTimeManager.getGameID();
 
         // Salvataggio statistiche utente
@@ -137,6 +137,8 @@ public class ClientHandler implements Runnable {
         endGameMessage.setNumberOfPlayers(this.gameStats.get(String.valueOf(gameID)).getNumberOfPlayers());
         endGameMessage.setGamesLost(this.gameStats.get(String.valueOf(gameID)).getGamesLost());
         endGameMessage.setGamesWon(this.gameStats.get(String.valueOf(gameID)).getGamesWon());
+        if(fromGameTimeManager) endGameMessage.setGameEnded(true);
+        else endGameMessage.setGameEnded(false);
         InetAddress clientAddr = this.clientChannel.getInetAddress();
         UDPNotificationManager.sendNotification(this.clientChannel.getInetAddress(),this.clientUDPport, endGameMessage);
     }

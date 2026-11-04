@@ -76,7 +76,7 @@ public class GameTimeManager implements Runnable {
             GameStatsSerializer.saveGameStats(this.gameStats);
             System.out.println("[SERVER] Tempo partita: " + gameID + " finito");
             for(ClientHandler clientHandler : currentUsers.values()){
-                clientHandler.MatchEnd();
+                clientHandler.MatchEnd(true);
             }
             activePlayers.clear();  //Pulisco la lista di giocatori attivi
             ActiveMatchManager.clearActiveMatch();

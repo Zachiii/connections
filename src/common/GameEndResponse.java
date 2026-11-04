@@ -22,10 +22,8 @@ public class GameEndResponse extends ResponseMessage{
     }
 
     // -------------- SETTER --------------
-    public void setWon (int won){
-        if(won == -1 || won == 1) {this.gameEnded = true;} else this.gameEnded = false;
-        this.won = won;
-    }
+    public void setWon (int won){this.won = won;}
+    public void setGameEnded(boolean gameEnded) {this.gameEnded = gameEnded;}
     public void setNumberOfPlayers(int numberOfPlayers) {this.numberOfPlayers = numberOfPlayers;}
     public void setGamesWon(int gamesWon) {this.gamesWon = gamesWon;}
     public void setGamesLost(int gamesLost) {this.gamesLost = gamesLost;}
@@ -86,5 +84,9 @@ public class GameEndResponse extends ResponseMessage{
                 System.out.println();
             }
         }
+    }
+
+    public long getTimeLeft(){
+        return this.timeLeft;
     }
 }

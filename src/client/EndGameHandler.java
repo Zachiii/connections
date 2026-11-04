@@ -33,7 +33,8 @@ public class EndGameHandler implements Runnable {
                 Gson gson = new Gson();
                 GameEndResponse responseMessage = gson.fromJson(message, GameEndResponse.class);
                 responseMessage.printEndGameResponse();
-                System.out.print("\nLa partita è finita, se non vuoi rimanere loggato per aspettare la prossima scrivi 'logout': ");
+                if(responseMessage.getTimeLeft() != 0) System.out.print("\nLa partita è finita, se non vuoi rimanere loggato per aspettare la prossima scrivi 'logout': ");
+                else System.out.print("\n La partita è finita, se vuoi sapere le nuove parole scrivi 'requestGameInfo' se vuoi uscire scrivi 'logout': ");
             }
         } catch (SocketException e) {
             // Terminazione normale: la socket UDP è stata chiusa dal client in fase di logout/uscita

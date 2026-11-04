@@ -9,9 +9,9 @@ import java.nio.channels.SocketChannel;
 
 public class ClientMain {
     static void main(String[] args){
-        ClientProp clientProp = new ClientProp();
-        InetAddress serverHost = clientProp.getHost();
-        int serverPort = clientProp.getServerPort();
+        ClientPropReader clientPropReader = new ClientPropReader();
+        InetAddress serverHost = clientPropReader.getHost();
+        int serverPort = clientPropReader.getServerPort();
         SocketChannel channel = connectToHost(serverHost, serverPort);
         try (DatagramSocket socket = new DatagramSocket();){
             if(channel == null){
@@ -42,7 +42,6 @@ public class ClientMain {
             clientChannel.configureBlocking(false);
             clientChannel.connect(new InetSocketAddress(serverHost, serverPort));
             while (!clientChannel.finishConnect()){ Thread.sleep(10);}
-            //System.out.println("Mi sono connesso?: " + clientChannel.isConnected());
             clientChannel.configureBlocking(true); //????????????
             return clientChannel;
         } catch (IOException | InterruptedException e) {
