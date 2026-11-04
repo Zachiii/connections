@@ -95,6 +95,14 @@ public class AuthHelper {
         GameInfoResponse response = new GameInfoResponse("loginResponse", "200", "Utente loggato");
         response.setWon(client.playerStatus.isWon());
         response.setWordsLeft(client.playerStatus.getWordsLeft());
+        response.setWon(0);
+        response.setTimeLeft(gameManager.getRemainingTimeSeconds());
+        response.setGameID(gameManager.getGameID());
+        response.setCurrentGame(true);
+        response.setWordsLeft(client.playerStatus.getWordsLeft());
+        response.setWordsGuessed(client.playerStatus.getWordsGuessed());
+        response.setMistakes(client.playerStatus.getMistakes());
+        response.setPoints(client.playerStatus.getScore());
         new SendTCPResponse(response, out);
         System.out.println("[SERVER] Login effettuato: " + username);
     }

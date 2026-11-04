@@ -46,12 +46,7 @@ public class ResponseHandler {
             ResponseMessage responseMessage = gson.fromJson(messageString, ResponseMessage.class);
             System.out.println("Risposta server: [" + responseMessage.getCode() + "] " + responseMessage.getResponse());
             switch(responseMessage.getOperation()){
-                case "loginResponse": {
-                    GameInfoResponse response = gson.fromJson(messageString, GameInfoResponse.class);
-                    if(responseMessage.getCode().equals("200"))response.printWordsLeft();
-                    break;
-                }
-                case "requestGameInfoResponse": {
+                case "loginResponse", "requestGameInfoResponse": {
                     GameInfoResponse response = gson.fromJson(messageString, GameInfoResponse.class);
                     if(responseMessage.getCode().equals("200"))response.printGameInfo();
                     break;
