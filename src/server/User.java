@@ -18,7 +18,7 @@ public class User {
     private int maxStreak;
     private int perfectPuzzles;
     //Storico delle partite: chiave = gameID
-    private final ConcurrentHashMap<Integer,UserMatchResult> playerHistory;
+    private ConcurrentHashMap<Integer,UserMatchResult> playerHistory;
     public User(String username, String password) {
         this.username = username;
         this.password = password;

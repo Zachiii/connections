@@ -13,11 +13,11 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ClientHandler implements Runnable {
     private final Socket clientChannel;
-    private final ConcurrentLinkedQueue<ClientHandler> allClients;
-    private final ConcurrentHashMap<String, User> registeredUsers;
-    private final ConcurrentHashMap<String, ClientHandler> currentUsers;
-    private final ConcurrentHashMap<String, PlayerStatus> activePlayers;
-    private final ConcurrentHashMap<String, GameStats> gameStats;
+    private ConcurrentLinkedQueue<ClientHandler> allClients;
+    private ConcurrentHashMap<String, User> registeredUsers;
+    private ConcurrentHashMap<String, ClientHandler> currentUsers;
+    private ConcurrentHashMap<String, PlayerStatus> activePlayers;
+    private ConcurrentHashMap<String, GameStats> gameStats;
     PlayerStatus playerStatus = null;
     private String username;
     private int clientUDPport;

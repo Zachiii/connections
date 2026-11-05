@@ -1,9 +1,5 @@
 package common;
 
-import server.User;
-
-import java.util.concurrent.ConcurrentHashMap;
-
 public class RegisterMessage extends Message {
     private String username;
     private String psw;
