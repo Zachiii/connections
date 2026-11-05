@@ -2,9 +2,7 @@ package server;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import common.LeaderboardResponse;
-import common.PlayerStatsResponse;
-import common.ResponseMessage;
+import common.*;
 
 import java.io.DataOutputStream;
 import java.io.IOException;

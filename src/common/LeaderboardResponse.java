@@ -1,7 +1,5 @@
 package common;
 
-import server.LeaderBoardEntry;
-
 import java.util.List;
 
 public class LeaderboardResponse extends ResponseMessage {

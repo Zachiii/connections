@@ -1,9 +1,9 @@
-package server;
+package common;
 
 public class LeaderBoardEntry {
-    private final int rank;
-    private final int points;
-    private final String username;
+    private int rank;
+    private int points;
+    private String username;
 
     public LeaderBoardEntry(int rank, int points, String username){
         this.rank = rank;
@@ -16,3 +16,4 @@ public class LeaderBoardEntry {
     public int getPoints() { return points; }
     public String getUsername() { return username; }
 }
+

@@ -4,7 +4,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class GameStats {
     // Statistiche di una singola partita, verrà poi usato per creare gamestats.json
-    private final int gameID;
+    private int gameID;
     private AtomicInteger numberOfPlayers = new AtomicInteger(0);
     private AtomicInteger totalPoints = new AtomicInteger(0);
     private AtomicInteger gamesWon = new AtomicInteger(0);

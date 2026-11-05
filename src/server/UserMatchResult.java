@@ -2,11 +2,11 @@ package server;
 
 // Salvata come HashMap in User, serve per avere uno storico dei match dell'utente
 public class UserMatchResult {
-    private final int gameId;
-    private final int score;
-    private final int mistakes;
-    private final int correctGroups;
-    private final int won;
+    private int gameId;
+    private int score;
+    private int mistakes;
+    private int correctGroups;
+    private int won;
 
     public UserMatchResult(int gameId, int score, int mistakes, int correctGroups, int won) {
         this.gameId = gameId;
