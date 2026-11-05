@@ -18,7 +18,7 @@ import java.nio.charset.StandardCharsets;
 // Gestisce le risposte UDP del server
 
 public class EndGameHandler implements Runnable {
-    DatagramSocket socket;
+    private final DatagramSocket socket;
     public EndGameHandler(DatagramSocket socket) {
         this.socket = socket;
     }

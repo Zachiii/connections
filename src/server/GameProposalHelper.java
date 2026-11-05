@@ -9,9 +9,9 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 
 public class GameProposalHelper {
-    private PlayerStatus playerStatus;
-    private InetAddress clientAddr;
-    private int clientUdpPort;
+    private final PlayerStatus playerStatus;
+    private final InetAddress clientAddr;
+    private final int clientUdpPort;
 
     public GameProposalHelper(PlayerStatus playerStatus, InetAddress clientAddr, int clientUdpPort) {
         this.playerStatus = playerStatus;

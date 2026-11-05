@@ -9,8 +9,8 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 public class InputHandler {
-    private SocketChannel channel;
-    private DatagramSocket socket;
+    private final SocketChannel channel;
+    private final DatagramSocket socket;
     public InputHandler(SocketChannel channel, DatagramSocket socket) {
         this.channel = channel;
         this.socket = socket;

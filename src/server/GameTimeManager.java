@@ -3,15 +3,15 @@ package server;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class GameTimeManager implements Runnable {
-    ConcurrentHashMap<String,ClientHandler> currentUsers;
-    ConcurrentHashMap<String,PlayerStatus> activePlayers;
-    ConcurrentHashMap<String,GameStats> gameStats;
+    private final ConcurrentHashMap<String,ClientHandler> currentUsers;
+    private final ConcurrentHashMap<String,PlayerStatus> activePlayers;
+    private final ConcurrentHashMap<String,GameStats> gameStats;
     private final long matchDurationSeconds;
     private volatile long startTimeMillis;
-    private int gameID;
+    private volatile int gameID;
     private volatile boolean isRunning;
     private volatile GameWordsRandomizer currentGame;
-    ServerPropReader serverPropReader;
+    final ServerPropReader serverPropReader;
     public GameTimeManager(
             ConcurrentHashMap<String,ClientHandler> currentUsers,
             ConcurrentHashMap<String,PlayerStatus> activePlayers,

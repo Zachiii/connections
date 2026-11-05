@@ -15,7 +15,7 @@ public class CloseServer implements Runnable {
     private final GameTimeManager gameTimeManager;
     // thread che esegue gameTimeManager
     private final Thread timerThread;
-    private ConcurrentLinkedQueue<ClientHandler> allClients;
+    private final ConcurrentLinkedQueue<ClientHandler> allClients;
     private final ConcurrentHashMap<String, User> registeredUsers;
     private final ConcurrentHashMap<String, ClientHandler> currentUsers;
     private final ConcurrentHashMap<String, GameStats> gameStats;
