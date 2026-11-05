@@ -79,7 +79,7 @@ public class GameTimeManager implements Runnable {
                 clientHandler.MatchEnd(true);
             }
             activePlayers.clear();  //Pulisco la lista di giocatori attivi
-            ActiveMatchManager.clearActiveMatch();
+            ActiveMatchSerializer.clearActiveMatch();
             gameID++;
             this.serverPropReader.updateGameID();
         }

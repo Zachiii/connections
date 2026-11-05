@@ -71,7 +71,7 @@ public class CloseServer implements Runnable {
                 System.out.println("[SERVER] Salvataggio dati in corso...");
                 UserSerializer.saveUsers(registeredUsers);
                 GameStatsSerializer.saveGameStats(gameStats);
-                ActiveMatchManager.saveActiveMatch(activePlayers);
+                ActiveMatchSerializer.saveActiveMatch(activePlayers);
 
                 //Chiude la ServerSocket: questo sblocca immediatamente la accept()
                 try {

@@ -2,10 +2,9 @@ package server;
 import java.net.InetAddress;
 import java.util.Properties; import java.io.*;
 public class ServerPropReader {
-    //leggo configurazione Server di ServerConfig (#porta,indirizzi,valori timeout ecc...)
+    //leggo configurazione Server di ServerConfig
     private String host;
     private String port;
-    private String backlog;
     public String matchTime;
     public int gameID;
     public ServerPropReader() {
@@ -14,7 +13,6 @@ public class ServerPropReader {
             prop.load(reader);
             this.host = prop.getProperty("host");
             this.port = prop.getProperty("port");
-            this.backlog = prop.getProperty("backlog");
             this.matchTime = prop.getProperty("matchTime");
             this.gameID = Integer.parseInt(prop.getProperty("gameID"));
         } catch (FileNotFoundException e) {

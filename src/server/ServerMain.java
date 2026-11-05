@@ -20,7 +20,7 @@ public class ServerMain {
         //HashMap degli utenti che hanno fatto il login
         ConcurrentHashMap<String,ClientHandler> currentUsers = new ConcurrentHashMap<>();
         //HashMap degli utenti che stanno giocando
-        ConcurrentHashMap<String,PlayerStatus> activePlayers = ActiveMatchManager.loadActiveMatch();
+        ConcurrentHashMap<String,PlayerStatus> activePlayers = ActiveMatchSerializer.loadActiveMatch();
         //HashMap di tutte le partite giocate
         ConcurrentHashMap<String,GameStats>  gameStats = GameStatsSerializer.loadGameStats();
         //Mando matchDurationSeconds a un thread che si occuperà di far scorrere il tempo e di avvisare il server quando la partita sarà terminata

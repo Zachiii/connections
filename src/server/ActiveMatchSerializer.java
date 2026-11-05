@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 // Serializzazione di activePlayers
 
-public class ActiveMatchManager {
+public class ActiveMatchSerializer {
     private static final String TARGET_PATH = "src/server/active_match.json";
     private static final String TEMP_PATH = "src/server/active_match_temp.json";
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
