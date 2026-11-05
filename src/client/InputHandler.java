@@ -105,7 +105,8 @@ public class InputHandler {
                     break;
                 }
                 case "requestLeaderboard": {
-                    System.out.print("Se vuoi la lista completa dei giocatori scrivi 'total', se vuoi la top K utenti scrivi un numero maggiore di 0, se vuoi la posizione specifica di un giocatore scrivi il suo nome: ");
+                    System.out.print("Scrivi 'total' per la lista completa, un numero maggiore di 0 per la top K,\n"
+                            + "oppure il nome di un giocatore per vedere la sua posizione: ");
                     String metodoDistampa = scanner.nextLine().trim();
                     LeaderboardMessage message = new LeaderboardMessage(operation, metodoDistampa);
                     new SendMessage(this.channel,message);
