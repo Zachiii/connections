@@ -1,7 +1,6 @@
 package client;
 
 import common.*;
-import server.SendTCPResponse;
 
 import java.io.IOException;
 import java.net.DatagramSocket;
