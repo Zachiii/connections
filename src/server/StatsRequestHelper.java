@@ -27,8 +27,7 @@ public class StatsRequestHelper {
                                              DataOutputStream out) throws IOException {
         JsonObject jsonObject = JsonParser.parseString(jsonMessage).getAsJsonObject();
         int validatedId = validateGameRequest(jsonObject, "requestGameInfoResponse", username, currentUsers, gameManager, out);
-        if (validatedId == -2) {
-            return;} // Controllo fallito: errore già inviato via TCP
+        if (validatedId == -2) {return;} // Controllo fallito: errore già inviato via TCP
         GameInfoResponse response = createGameInfoResponse(validatedId, username, registeredUsers, status, gameManager);
         new SendTCPResponse(response, out);
     }
@@ -49,6 +48,7 @@ public class StatsRequestHelper {
     private static int validateGameRequest(JsonObject messageJson, String responseOp, String username,
                                            ConcurrentHashMap<String, ClientHandler> currentUsers,
                                            GameTimeManager gameManager, DataOutputStream out) throws IOException {
+        // Controllo se login è stato eseguito
         if (username == null || !currentUsers.containsKey(username)) {
             new SendTCPResponse(new ResponseMessage(responseOp, "401", "Accesso non autorizzato. Effettua il login."), out);
             return -2;
@@ -56,6 +56,7 @@ public class StatsRequestHelper {
 
         String askedGameID = messageJson.has("gameID") ? messageJson.get("gameID").getAsString().trim() : "";
 
+        // Controllo se è stato specificato il gameID
         if (askedGameID.isEmpty()) {
             new SendTCPResponse(new ResponseMessage(responseOp, "400", "Parametro gameID mancante. Specifica 'current' o un numero."), out);
             return -2;
@@ -65,17 +66,20 @@ public class StatsRequestHelper {
             return -1;
         }
 
+        // gameID != current, controllo se è valido
         try {
             int parsedId = Integer.parseInt(askedGameID);
             int currentGameID = (gameManager != null) ? gameManager.getGameID() : 0;
 
             if (parsedId < 0 || parsedId > currentGameID) {
+                // gameID è un numero, ma non è valido
                 new SendTCPResponse(new ResponseMessage(responseOp, "404", "Questo ID partita non esiste o la partita non è ancora iniziata."), out);
                 return -2;
             }
             return parsedId;
 
         } catch (NumberFormatException e) {
+            // gameID mandato non è un numero e non è 'current'
             new SendTCPResponse(new ResponseMessage(responseOp, "400", "L'ID della partita deve essere un numero intero positivo o la stringa 'current'."), out);
             return -2;
         }

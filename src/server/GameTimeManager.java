@@ -38,29 +38,32 @@ public class GameTimeManager implements Runnable {
     @Override
     public void run() {
         System.out.println("[SERVER] Timer partito");
+        WordReader wordReader = new WordReader();
         while (isRunning && gameID < 900){
             //inizia partita
-            GameStats currentGame = new GameStats(this);
-            this.gameStats.putIfAbsent(String.valueOf(gameID), currentGame);
-            WordReader wordReader = new WordReader();
-            this.currentGame = WordReader.getGame(gameID);
-            System.out.println("[SERVER] Partita caricata: " + this.currentGame.getGroupWords());
-            if(this.currentGame != null){
-                for(ClientHandler client: this.currentUsers.values()){
-                    String username = client.getUsername();
-
-                    PlayerStatus newStatus = new PlayerStatus(username,true);
-                    newStatus.setGroupWords(this.currentGame.getGroupWords());
-                    newStatus.setWordsLeft(this.currentGame.getShuffledWords());
-                    client.playerStatus = newStatus;
-                    this.activePlayers.put(username,newStatus);
-                    GameStats currentStats = this.gameStats.get(String.valueOf(this.gameID));
-                    if (currentStats != null) {
-                        currentStats.setNumberOfPlayers();
-                    }
-                }
-                GameStatsSerializer.saveGameStats(this.gameStats);
+            GameStats newGameStats = new GameStats(this);
+            this.gameStats.putIfAbsent(String.valueOf(gameID), newGameStats);
+            this.currentGame = wordReader.getGame(gameID);
+            if (this.currentGame == null) {
+                System.err.println("[SERVER] Nessuna partita trovata per gameID " + gameID
+                        + ": controllare Connections_Data.json e il valore di gameID.");
+                break;   // esce dal ciclo: non ha senso continuare senza parole
             }
+            System.out.println("[SERVER] Partita caricata: " + this.currentGame.getGroupWords());
+            for(ClientHandler client: this.currentUsers.values()){
+                String username = client.getUsername();
+
+                PlayerStatus newStatus = new PlayerStatus(username,true);
+                newStatus.setGroupWords(this.currentGame.getGroupWords());
+                newStatus.setWordsLeft(this.currentGame.getShuffledWords());
+                client.playerStatus = newStatus;
+                this.activePlayers.put(username,newStatus);
+                GameStats currentStats = this.gameStats.get(String.valueOf(this.gameID));
+                if (currentStats != null) {
+                    currentStats.setNumberOfPlayers();
+                }
+            }
+            GameStatsSerializer.saveGameStats(this.gameStats);
             this.startTimeMillis = System.currentTimeMillis();
             try {
                 Thread.sleep(matchDurationSeconds * 1000L);

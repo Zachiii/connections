@@ -39,13 +39,9 @@ public class ClientMain {
     public static SocketChannel connectToHost(InetAddress serverHost, int serverPort){
         try {
             SocketChannel clientChannel = SocketChannel.open();
-            clientChannel.configureBlocking(false);
             clientChannel.connect(new InetSocketAddress(serverHost, serverPort));
-            while (!clientChannel.finishConnect()){ Thread.sleep(10);}
-            // Bloccante perché se il server stesse ancora elaborando la riposta, channel.read() farebbe busy waiting
-            clientChannel.configureBlocking(true);
             return clientChannel;
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
             return null;
         }
     }

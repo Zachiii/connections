@@ -61,7 +61,8 @@ public class ClientHandler implements Runnable {
                         break;
                     }
                     case "updateCredentials": {
-                        AuthHelper.handleUpdateCredentials(messageString,this,this.registeredUsers,this.currentUsers,outputStream);
+                        AuthHelper.handleUpdateCredentials(messageString,this,this.registeredUsers,this.currentUsers,this.activePlayers,outputStream);
+                        break;
                     }
                     case "login": {
                         AuthHelper.handleLogin(messageString, this, this.registeredUsers, this.currentUsers, this.activePlayers, this.gameStats,this.gameTimeManager,outputStream);

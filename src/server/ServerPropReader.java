@@ -5,8 +5,8 @@ public class ServerPropReader {
     //leggo configurazione Server di ServerConfig
     private String host;
     private String port;
-    public String matchTime;
-    public int gameID;
+    private String matchTime;
+    private int gameID;
     public ServerPropReader() {
         try (FileReader reader = new FileReader( new File("src/server/ServerConfig.properties"))){
             Properties prop = new Properties();

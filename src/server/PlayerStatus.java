@@ -35,6 +35,7 @@ public class PlayerStatus {
     public boolean isOnline() {return this.online;}
     public boolean isGameEnded() {return this.gameEnded;}
     public int isWon() {return this.won;}
+    public void setUsername(String username) { this.username = username; }
 
     //Setta la lista di parole da indovinare
     public void setWordsLeft(ArrayList<String> wordsLeft) {

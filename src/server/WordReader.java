@@ -9,7 +9,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 public class WordReader {
-    private static List<GameWordsRandomizer> allGames;
+    private List<GameWordsRandomizer> allGames;
     ConcurrentHashMap<String,ClientHandler> currentUsers;
     public WordReader(){
         Gson gson = new Gson();
@@ -21,7 +21,7 @@ public class WordReader {
         }
     }
     // Ritorna la singola partita dato il gameID
-    public static GameWordsRandomizer getGame(int gameId) {
+    public GameWordsRandomizer getGame(int gameId) {
         if (allGames != null && gameId >= 0 && gameId < allGames.size()) {
             return allGames.get(gameId);
         }

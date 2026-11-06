@@ -60,7 +60,7 @@ public class GameEndResponse extends ResponseMessage{
             printWordsLeft();
         }
 
-        // 2. Statistiche globali come da specifiche del PDF
+        // 2. Statistiche globali
         System.out.println("\n--- STATISTICHE GLOBALI PARTITA ---");
         System.out.println("Giocatori che hanno partecipato: " + this.numberOfPlayers);
         System.out.println("Giocatori che hanno concluso la partita: " + (this.gamesWon + this.gamesLost));

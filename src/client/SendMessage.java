@@ -23,7 +23,6 @@ public class SendMessage {
             while(byteBuffer.hasRemaining()){
                 channel.write(byteBuffer);
             }
-            //System.out.println("Inviato al server il messaggio: " + jsonMessage);
         } catch (IOException e){
             e.printStackTrace();
         }

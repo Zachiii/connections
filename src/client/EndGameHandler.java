@@ -38,7 +38,7 @@ public class EndGameHandler implements Runnable {
             }
         } catch (SocketException e) {
             // Terminazione normale: la socket UDP è stata chiusa dal client in fase di logout/uscita
-            System.out.println("DEBUG: Ricezione UDP arrestata regolarmente.");
+            System.out.println("Ricezione UDP arrestata regolarmente.");
         } catch (IOException e) {
             System.err.println("Errore di I/O nella ricezione UDP: " + e.getMessage());
         }

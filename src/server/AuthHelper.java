@@ -110,6 +110,7 @@ public class AuthHelper {
     public static void handleUpdateCredentials(String jsonMessage, ClientHandler client,
                                                ConcurrentHashMap<String, User> registeredUsers,
                                                ConcurrentHashMap<String, ClientHandler> currentUsers,
+                                               ConcurrentHashMap<String,PlayerStatus> activePlayers,
                                                DataOutputStream out) throws IOException {
 
         JsonObject jsonObject = JsonParser.parseString(jsonMessage).getAsJsonObject();
@@ -153,6 +154,12 @@ public class AuthHelper {
             currentUsers.remove(oldUsername);
             currentUsers.put(currentUser.getUsername(), client);
             client.setUsername(currentUser.getUsername());
+            PlayerStatus status = activePlayers.remove(oldUsername);
+            if (status != null) {
+                status.setUsername(currentUser.getUsername());
+                activePlayers.put(currentUser.getUsername(), status);
+                ActiveMatchSerializer.saveActiveMatch(activePlayers);
+            }
         }
         UserSerializer.saveUsers(registeredUsers);
 

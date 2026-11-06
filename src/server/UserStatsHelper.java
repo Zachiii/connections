@@ -30,7 +30,7 @@ public class UserStatsHelper {
             return;
         }
 
-        // Creazione della risposta con i dati da memoria (User.java)
+        // Creazione della risposta
         PlayerStatsResponse response = new PlayerStatsResponse("requestPlayerStatsResponse", "200", "Statistiche utente recuperate con successo");
         response.setPuzzlesCompleted(user.getPuzzlesCompleted());
         response.setGamesWon(user.getGamesWon());
@@ -47,11 +47,13 @@ public class UserStatsHelper {
 
         for (UserMatchResult match : user.getMatchHistory().values()) {
             if (match.isWon() == 1) {
+                // calcolo errori per ogni partita vinta
                 int mistakes = match.getMistakes();
                 if (mistakes >= 0 && mistakes <= 3) {
                     mistakeHistogram[mistakes]++;
                 }
             } else if (match.isWon() == -1) {
+                // partite perse
                 mistakeHistogram[4]++;
             } else if (match.isWon() == 0) {
                 // Ignora la partita corrente se presente nello storico
@@ -86,7 +88,7 @@ public class UserStatsHelper {
         List<LeaderBoardEntry> leaderboard = new ArrayList<>();
         int userRank = -1;
 
-        // Calcolo preliminare della posizione dell'utente richiedente (serve sempre)
+        // Calcolo preliminare della posizione dell'utente richiedente
         for (int i = 0; i < sortedUsers.size(); i++) {
             if (sortedUsers.get(i).getUsername().equals(username)) {
                 userRank = i + 1;
